@@ -1,0 +1,3138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика — СтройИнжиниринг</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #146b3a 0%, #1a8a6a 35%, #1a7aae 70%, #1a5a9e 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --accent-green: #4ade80;
+            --accent-blue: #38bdf8;
+            --warning-orange: #f59e0b;
+            --danger-red: #ef4444;
+            --card-bg: rgba(18, 35, 26, 0.85);
+            --card-border: rgba(255, 255, 255, 0.11);
+            --card-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+            --card-blur: blur(10px);
+            --glass-bg: rgba(8, 18, 14, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --report-bg: rgba(18, 35, 26, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg-gradient); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+
+        .header { background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--glass-border); padding: 0 2rem; height: 70px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; }
+        .header-left { display: flex; align-items: center; gap: 2rem; }
+        .logo { height: 40px; width: auto; display: flex; align-items: center; }
+        .logo img { height: 40px; width: auto; }
+        .report-selector, .role-selector { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; cursor: pointer; outline: none; }
+        .report-selector { min-width: 200px; }
+        .role-selector { padding: 0.3rem 0.8rem; font-size: 0.85rem; }
+        .report-selector option, .role-selector option { background: #1a2a24; color: white; }
+        .header-right { display: flex; align-items: center; gap: 1.5rem; }
+        .admin-sandbox { display: flex; align-items: center; gap: 0.75rem; background: rgba(255, 255, 255, 0.05); padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid var(--accent-blue); }
+        .sandbox-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-blue); font-weight: 600; }
+        .user-profile { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; color: var(--text-secondary); }
+        .user-avatar { width: 36px; height: 36px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+
+        .main-container { flex: 1; padding: 2rem; display: flex; justify-content: center; align-items: flex-start; }
+        #workspace { width: 100%; max-width: 1400px; }
+
+        .workspace-accounting { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; }
+        .workspace-procurement { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; }
+        .workspace-admin { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; }
+
+        .upload-zone { background: var(--card-bg); backdrop-filter: var(--card-blur); border: 1px solid var(--card-border); border-radius: 16px; padding: 2rem; min-height: 450px; box-shadow: var(--card-shadow); }
+        .card-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem; }
+        .card-subtitle { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 2rem; }
+
+        .upload-zone-grid { display: grid; grid-template-columns: 35% 65%; gap: 1rem; margin-bottom: 1rem; align-items: start; }
+
+        .upload-info { background: rgba(56, 189, 248, 0.1); border-left: 3px solid var(--accent-blue); padding: 1rem; border-radius: 8px; }
+        .upload-info-title { font-size: 0.85rem; font-weight: 600; color: var(--accent-blue); margin-bottom: 0.5rem; }
+        .upload-info-text { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+        .upload-info-text strong { color: var(--text-primary); }
+
+        .screenshot-container { display: flex; justify-content: center; align-items: center; padding: 0; }
+        .screenshot-container img { max-width: 95%; height: auto; border-radius: 4px; }
+
+        .date-hint { font-size: 0.8rem; color: var(--text-secondary); margin: 1.5rem 0; font-style: italic; }
+        .date-hint strong { color: var(--accent-green); }
+
+        .upload-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+        .file-input-wrapper { position: relative; margin-bottom: 0; }
+        .file-input-wrapper input[type="file"] { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .file-input-button { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); border: 2px dashed var(--glass-border); padding: 1rem 1.5rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; width: 100%; justify-content: center; color: var(--text-primary); }
+        .file-input-button:hover { background: rgba(255, 255, 255, 0.15); border-color: var(--accent-blue); }
+        .file-input-button.has-file { border-color: var(--accent-green); background: rgba(74, 222, 128, 0.1); }
+        .file-input-button.disabled { opacity: 0.5; pointer-events: none; }
+
+        .file-status { margin-top: 1rem; padding: 0.75rem; border-radius: 8px; display: none; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
+        .file-status.visible { display: flex; }
+        .file-status.success { background: rgba(74, 222, 128, 0.1); border: 1px solid var(--accent-green); color: var(--accent-green); }
+        .file-status.warning { background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning-orange); color: var(--warning-orange); }
+
+        .btn { padding: 0.875rem 1.5rem; border: none; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; }
+        .btn-primary { background: var(--accent-blue); color: #0f172a; }
+        .btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { background: rgba(255, 255, 255, 0.1); color: var(--text-secondary); cursor: not-allowed; }
+        .btn-small { padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto; }
+        .btn-icon { padding: 0.3rem 0.6rem; font-size: 0.85rem; width: auto; background: rgba(56, 189, 248, 0.2); border: 1px solid var(--accent-blue); }
+        .btn-icon:hover { background: rgba(56, 189, 248, 0.3); }
+
+        .report-zone-compact { background: var(--card-bg); backdrop-filter: var(--card-blur); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.5rem 2rem; min-height: 120px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .report-zone-compact .report-content { background: transparent; border: none; padding: 0; width: 100%; }
+        .report-placeholder { text-align: center; padding: 1rem; }
+        .report-placeholder-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; }
+
+        .workspace-single { display: flex; justify-content: center; align-items: flex-start; max-width: 900px; margin: 0 auto; width: 100%; }
+
+        .etl-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .etl-stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .etl-stat-card:hover { transform: translateY(-2px); }
+        .etl-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--stat-color, var(--accent-blue));
+        }
+        .etl-stat-card.processed { --stat-color: var(--accent-blue); }
+        .etl-stat-card.created  { --stat-color: var(--accent-green); }
+        .etl-stat-card.updated  { --stat-color: var(--warning-orange); }
+        .etl-stat-card.deactivated { --stat-color: var(--danger-red); }
+
+        .etl-stat-icon { font-size: 1.5rem; margin-bottom: 0.5rem; opacity: 0.9; }
+        .etl-stat-value { font-size: 2rem; font-weight: 700; color: var(--stat-color, var(--text-primary)); line-height: 1; margin-bottom: 0.35rem; }
+        .etl-stat-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+
+        .tabs-container { margin-top: 1.5rem; display: none; }
+        .tabs-container.active { display: block; }
+        .tabs-header { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(74, 222, 128, 0.2); }
+        .tab-button { background: transparent; border: none; color: var(--text-secondary); padding: 0.75rem 1.5rem; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.3s; margin-bottom: -2px; }
+        .tab-button:hover { color: var(--accent-green); }
+        .tab-button.active { color: var(--accent-green); border-bottom-color: var(--accent-green); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .table-wrapper { width: 100%; overflow-x: auto; margin-top: 1rem; border-radius: 12px; background: rgba(8, 18, 14, 0.6); }
+
+        .data-table { width: 100%; table-layout: fixed; border-collapse: collapse; background: rgba(8, 18, 14, 0.6); border-radius: 12px; overflow: hidden; font-size: 0.85rem; }
+        .data-table thead { background: rgba(74, 222, 128, 0.1); }
+        .data-table th, .data-table td { padding: 0.75rem 0.5rem; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; }
+        .data-table th { font-size: 0.8rem; }
+        .data-table tr:hover { background: rgba(74, 222, 128, 0.05); }
+        .status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 16px; font-size: 0.875rem; font-weight: 500; }
+        .status-ok { background: rgba(74, 222, 128, 0.2); color: var(--accent-green); }
+        .status-work { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
+        .status-attention { background: rgba(245, 158, 11, 0.2); color: var(--warning-orange); }
+        .status-resolve { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .status-alarm { background: rgba(239, 68, 68, 0.2); color: var(--danger-red); }
+        .adjustment-indicator { color: var(--accent-blue); margin-left: 0.3rem; cursor: help; }
+
+        .download-button { background: linear-gradient(135deg, #f0af42, #f97316); border: none; color: #0a0f0d; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; margin-bottom: 1rem; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .download-button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(240, 175, 66, 0.3); }
+
+        @media (max-width: 768px) {
+            .upload-zone-grid { grid-template-columns: 1fr; }
+            .upload-controls { grid-template-columns: 1fr; }
+            .etl-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .dashboard-container { display: flex; flex-direction: column; gap: 2rem; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .kpi-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1.5rem; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+        .kpi-card:hover { transform: translateY(-4px); border-color: var(--accent-green); }
+        .kpi-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+        .kpi-value { font-size: 2rem; font-weight: 700; color: var(--accent-green); margin-bottom: 0.5rem; }
+        .kpi-label { font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .kpi-sub { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.4rem; text-transform: none; letter-spacing: 0; }
+        .kpi-sub b { color: var(--text-primary); font-weight: 600; white-space: nowrap; }
+
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+        .chart-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1.5rem; }
+        .chart-card.wide { grid-column: 1 / -1; }   /* карточка на всю ширину (ряд 1) */
+        .chart-tall { position: relative; height: 380px; }   /* фикс. высота для широкой карточки */
+        .chart-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; text-align: center; }
+
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 2rem; max-width: 500px; width: 90%; box-shadow: var(--card-shadow); }
+        .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary); }
+        .modal-field { margin-bottom: 1.25rem; }
+        .modal-label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 500; }
+        .modal-input, .modal-textarea, .modal-select { width: 100%; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-primary); font-family: 'Montserrat', sans-serif; font-size: 0.9rem; }
+        .modal-textarea { min-height: 80px; resize: vertical; }
+        .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .modal-actions .btn { flex: 1; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+
+        /* ✅ НОВЫЕ СТИЛИ ДЛЯ ЖУРНАЛА ОШИБОК */
+        .error-log-container {
+            background: var(--card-bg);
+            backdrop-filter: var(--card-blur);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .error-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .error-log-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .error-log-controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .error-log-filters {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+            min-width: 150px;
+        }
+
+        .filter-select option {
+            background: #1a2a24;
+            color: white;
+        }
+
+        .error-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .error-type-retryable {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-orange);
+        }
+
+        .error-type-permanent {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-red);
+        }
+
+        .error-type-validation {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .error-type-unknown {
+            background: rgba(203, 213, 225, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .resolved-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .resolved-true {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--accent-green);
+        }
+
+        .resolved-false {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-red);
+        }
+
+        .error-message-cell {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .error-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .error-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .error-stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--stat-color, var(--accent-blue));
+        }
+
+        .error-stat-card.total { --stat-color: var(--accent-blue); }
+        .error-stat-card.unresolved { --stat-color: var(--danger-red); }
+        .error-stat-card.resolved { --stat-color: var(--accent-green); }
+        .error-stat-card.retryable { --stat-color: var(--warning-orange); }
+
+        .error-stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--stat-color, var(--text-primary));
+            line-height: 1;
+            margin-bottom: 0.35rem;
+        }
+
+        .error-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .btn-refresh {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-refresh:hover {
+            background: rgba(74, 222, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-refresh:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ✅ АВТОРИЗАЦИЯ: экран входа, кнопки шапки, смена пароля */
+        .btn-header {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-header:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-primary); }
+
+        .login-overlay {
+            position: fixed; inset: 0;
+            background: var(--bg-gradient);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+        }
+        .login-overlay.active { display: flex; }
+        .login-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--card-blur);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            width: 380px;
+            max-width: 90vw;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+        .login-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.75rem; }
+        .login-logo { height: 36px; width: auto; margin: 0 auto 1.25rem; display: block; }
+        .login-sub { color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2rem; }
+        .login-field { margin-bottom: 1rem; text-align: left; }
+        .login-field label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .login-input {
+            width: 100%; padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .login-input:focus { border-color: var(--accent-blue); }
+        .login-error {
+            display: none;
+            margin-top: 1rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--danger-red);
+            color: var(--danger-red);
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .login-error.visible { display: block; }
+        .login-hint { margin-top: 1.25rem; font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* ✅ REO: workspace дашборда */
+        .workspace-reo { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; }
+        .reo-toolbar {
+            background: var(--card-bg); backdrop-filter: var(--card-blur);
+            border: 1px solid var(--card-border); border-radius: 16px;
+            padding: 1.25rem 2rem; box-shadow: var(--card-shadow);
+            display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+        }
+        .reo-toolbar label { font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.6rem; }
+        .reo-date-input {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border);
+            color: var(--text-primary); padding: 0.5rem 0.9rem; border-radius: 8px;
+            font-family: 'Montserrat', sans-serif; font-size: 0.9rem; outline: none;
+            color-scheme: dark;
+        }
+        .reo-date-info { font-size: 0.85rem; color: var(--text-secondary); flex: 1; min-width: 260px; }
+        .reo-date-info .actual { color: var(--accent-green); font-weight: 600; }
+        .reo-date-info .warn { color: var(--warning-orange); }
+        .reo-help { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.65; }
+        .reo-help p { margin: 0 0 0.8rem 0; }
+        .reo-help b { color: var(--text-primary); }
+        .reo-help table { width: 100%; border-collapse: collapse; margin: 0.4rem 0 0.9rem 0; font-size: 0.8rem; }
+        .reo-help th, .reo-help td { border: 1px solid var(--glass-border); padding: 0.3rem 0.6rem; text-align: center; }
+        .reo-help th { color: var(--text-primary); font-weight: 600; background: rgba(255,255,255,0.04); }
+        /* индикатор долгих операций: спиннер + полоса */
+        .reo-progress { display: flex; align-items: center; gap: 0.75rem; }
+        .reo-spinner {
+            width: 1.1rem; height: 1.1rem; flex: none;
+            border: 2px solid rgba(56, 189, 248, 0.25);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: reoSpin 0.8s linear infinite;
+        }
+        @keyframes reoSpin { to { transform: rotate(360deg); } }
+        .reo-progress-text { color: var(--accent-blue); font-weight: 600; }
+        .reo-progress-bar {
+            flex: 1; height: 6px; min-width: 120px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px; overflow: hidden;
+        }
+        .reo-progress-fill {
+            height: 100%; width: 40%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            border-radius: 3px;
+            animation: reoSlide 1.2s ease-in-out infinite;
+        }
+        @keyframes reoSlide {
+            0% { margin-left: -40%; }
+            100% { margin-left: 100%; }
+        }
+        .reo-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .reo-crumbs { font-size: 0.9rem; color: var(--text-secondary); display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+        .reo-crumbs a { color: var(--accent-blue); cursor: pointer; text-decoration: none; }
+        .reo-crumbs a:hover { text-decoration: underline; }
+        .reo-crumbs .sep { color: var(--text-secondary); }
+        .reo-crumbs .current { color: var(--text-primary); font-weight: 600; }
+        .reo-tree-card { background: var(--card-bg); backdrop-filter: var(--card-blur); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.5rem 2rem; box-shadow: var(--card-shadow); }
+        .reo-tree { table-layout: auto; }
+        .reo-tree thead th {
+            text-align: center; vertical-align: middle;
+            white-space: normal; word-wrap: break-word;
+            line-height: 1.2; max-width: 150px;
+        }
+        .reo-tree thead th:first-child { min-width: 230px; max-width: none; text-align: center; }
+        .reo-tree td:first-child { text-align: left; }
+        .reo-tree td.num { text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle; }
+        .reo-tree td:last-child { text-align: center; }   /* доля выполнения — по центру весь столбец */
+        .reo-tree tr.selected { background: rgba(56, 189, 248, 0.12) !important; }
+        .reo-tree .tw {
+            cursor: pointer; user-select: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 1.5rem; height: 1.5rem; margin-right: 0.4rem;
+            border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 5px;
+            background: rgba(56, 189, 248, 0.15); color: var(--accent-blue);
+            font-size: 0.85rem; font-weight: 700; line-height: 1;
+            transition: all 0.15s;
+        }
+        .reo-tree .tw:hover { background: rgba(56, 189, 248, 0.35); }
+        .reo-tree .tw.empty { visibility: hidden; }
+        .reo-tree .lvl1 td:first-child { padding-left: 1.5rem; }
+        .reo-tree .lvl2 td:first-child { padding-left: 3rem; }
+        .reo-tree .lvl3 td:first-child { padding-left: 4.5rem; }
+        .reo-tree .lvl0 { font-weight: 600; }
+        .reo-exec-ok { color: var(--accent-green); }
+        .reo-exec-mid { color: var(--warning-orange); }
+        .reo-exec-low { color: var(--text-secondary); }
+        .terms-input {
+            width: 100%; min-width: 130px; padding: 0.4rem 0.6rem;
+            border-radius: 6px; border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.06); color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif; font-size: 0.85rem;
+            text-align: right; outline: none;
+        }
+        .terms-input:focus { border-color: var(--accent-blue); }
+        .reo-date-hidden {
+            position: absolute; opacity: 0;
+            width: 1px; height: 1px; padding: 0; border: none;
+            pointer-events: none;
+        }
+        .btn-cal {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.45rem 0.6rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        .btn-cal:hover { background: rgba(255, 255, 255, 0.18); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <img src="logo.svg" alt="СтройИнжиниринг">
+            </div>
+            <select id="reportSelect" class="report-selector" onchange="changeReport()">
+                <option value="">Выберите отчёт...</option>
+                <option value="osv_6002">Анализ ОСВ 60.02</option>
+                <option value="reo" style="display:none;">Демо-аналитика</option>
+            </select>
+        </div>
+        <div class="header-right">
+            <div class="admin-sandbox" id="adminSandbox" style="display:none;">
+                <span class="sandbox-label">SANDBOX:</span>
+                <select id="roleSelect" class="role-selector" onchange="changeRole()">
+                    <option value="admin">Администратор</option>
+                    <option value="accounting">Бухгалтер</option>
+                    <option value="procurement">Начальник снабжения</option>
+                    <option value="manager">Менеджер снабжения</option>
+                    <option value="management">Директорат</option>
+                </select>
+            </div>
+            <button class="btn-header" id="btnUsers" onclick="openUsersModal()" style="display:none;">👥 Пользователи</button>
+            <button class="btn-header" onclick="openChangePassword(false)">🔑 Сменить пароль</button>
+            <div class="user-profile">
+                <div class="user-avatar" id="userAvatar">?</div>
+                <span id="userName">...</span>
+            </div>
+            <button class="btn-header" onclick="handleLogout()">🚪 Выход</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div id="workspace"></div>
+    </main>
+
+    <div id="modalManager" class="modal-overlay">
+        <div class="modal">
+            <h3 class="modal-title">✏️ Изменить менеджера</h3>
+            <div class="modal-field">
+                <label class="modal-label">Контрагент</label>
+                <input type="text" id="modalContractor" class="modal-input" readonly>
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Документ</label>
+                <input type="text" id="modalDocument" class="modal-input" readonly>
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Новый менеджер</label>
+                <input type="text" id="modalManagerName" class="modal-input" placeholder="Введите ФИО менеджера">
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Причина изменения</label>
+                <textarea id="modalManagerReason" class="modal-textarea" placeholder="Укажите причину изменения менеджера"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('modalManager')">Отмена</button>
+                <button class="btn btn-primary" onclick="saveManagerAdjustment()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalDelivery" class="modal-overlay">
+        <div class="modal">
+            <h3 class="modal-title">📅 Изменить срок поставки</h3>
+            <div class="modal-field">
+                <label class="modal-label">Контрагент</label>
+                <input type="text" id="modalDeliveryContractor" class="modal-input" readonly>
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Документ</label>
+                <input type="text" id="modalDeliveryDocument" class="modal-input" readonly>
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Текущий срок (дней)</label>
+                <input type="number" id="modalCurrentTerm" class="modal-input" readonly>
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Новый срок (дней)</label>
+                <input type="number" id="modalNewTerm" class="modal-input" placeholder="Введите новый срок в днях" min="1">
+            </div>
+            <div class="modal-field">
+                <label class="modal-label">Причина изменения</label>
+                <textarea id="modalDeliveryReason" class="modal-textarea" placeholder="Укажите причину изменения срока"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('modalDelivery')">Отмена</button>
+                <button class="btn btn-primary" onclick="saveDeliveryAdjustment()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ АВТОРИЗАЦИЯ: экран входа -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <img src="logo.svg" alt="СтройИнжиниринг" class="login-logo">
+            <div class="login-title">Портал аналитики</div>
+            <form onsubmit="handleLogin(event)">
+                <div class="login-field">
+                    <label for="loginEmail">Корпоративный email</label>
+                    <input type="email" id="loginEmail" class="login-input" placeholder="ivanov@demo.ru" autocomplete="username" required>
+                </div>
+                <div class="login-field">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" class="login-input" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="btnLogin">Войти</button>
+            </form>
+            <div id="loginError" class="login-error"></div>
+            <div class="login-hint">Пароль выдаёт администратор.<br>При первом входе его нужно сменить.</div>
+        </div>
+    </div>
+
+    <!-- ✅ АВТОРИЗАЦИЯ: смена пароля -->
+    <div id="modalPassword" class="modal-overlay">
+        <div class="modal">
+            <h3 class="modal-title">🔑 Смена пароля</h3>
+            <div id="passwordMandatoryNote" style="display:none; margin-bottom: 1rem; padding: 0.75rem; border-radius: 8px; background: rgba(245, 158, 11, 0.12); border: 1px solid var(--warning-orange); color: var(--warning-orange); font-size: 0.85rem;">
+                Придумайте новый пароль — без этого вход в портал невозможен.
+            </div>
+            <!-- форма обязательна: по ней браузер распознаёт смену пароля и предлагает обновить сохранённый -->
+            <form onsubmit="handleChangePassword(event)">
+                <div class="modal-field">
+                    <label class="modal-label">Текущий пароль</label>
+                    <input type="password" id="pwdOld" class="modal-input" autocomplete="current-password">
+                </div>
+                <div class="modal-field">
+                    <label class="modal-label">Новый пароль (не короче 6 символов)</label>
+                    <input type="password" id="pwdNew1" class="modal-input" autocomplete="new-password">
+                </div>
+                <div class="modal-field">
+                    <label class="modal-label">Повторите новый пароль</label>
+                    <input type="password" id="pwdNew2" class="modal-input" autocomplete="new-password">
+                </div>
+                <div id="pwdError" class="login-error"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="pwdCancelBtn" onclick="closeModal('modalPassword')">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ✅ REO: скачивание Excel на выбранную дату -->
+    <div id="reoDownloadModal" class="modal-overlay">
+        <div class="modal">
+            <h3 class="modal-title">📥 Скачать отчёт Excel</h3>
+            <div class="modal-field">
+                <label class="modal-label">Отчёт на дату</label>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" id="reoDlDate" class="modal-input reo-date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" inputmode="numeric">
+                    <input type="date" id="reoDlPick" class="reo-date-hidden" tabindex="-1" aria-hidden="true" onchange="reoPickChanged('reoDlDate')">
+                    <button type="button" class="btn-cal" title="Выбрать в календаре" onclick="reoOpenPicker('reoDlPick')">🗓️</button>
+                </div>
+            </div>
+            <div id="reoDlError" class="login-error"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('reoDownloadModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="reoDownloadExcel()">Скачать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ REO: памятка о сроках выгрузок (п.5 правок 02.11.26) -->
+    <div id="reoHelpModal" class="modal-overlay">
+        <div class="modal" style="max-width:640px;">
+            <h3 class="modal-title">❓ Памятка: сроки данных и выгрузок</h3>
+            <div class="reo-help">
+                <p><b>📅 Плановая выгрузка</b> выполняется автоматически <b>каждый вторник к 09:00 МСК</b>.
+                Отчёт на любую другую дату можно получить прямо с дашборда (см. ниже).</p>
+                <p><b>⏱️ Лаг данных.</b> Платёж попадает в выписку на следующий рабочий день и проводится
+                вечером того же дня, поэтому свежайшая доступная дата отчёта — <b>«сегодня минус 2 рабочих дня»</b>:</p>
+                <table>
+                    <tr><th>Сегодня</th><th>Свежайшая дата данных</th></tr>
+                    <tr><td>Пн</td><td>Чт</td></tr>
+                    <tr><td>Вт</td><td>Пт</td></tr>
+                    <tr><td>Ср</td><td>Пн</td></tr>
+                    <tr><td>Чт</td><td>Вт</td></tr>
+                    <tr><td>Пт</td><td>Ср</td></tr>
+                    <tr><td>Сб / Вс</td><td>Чт</td></tr>
+                </table>
+                <p><b>🔎 Произвольная дата.</b> Если на выбранную дату готового отчёта нет, портал предложит
+                ближайший более ранний отчёт либо подгрузку данных прямо из 1С (занимает ~10 секунд).</p>
+                <p><b>📥 Excel</b> скачивается на отдельную дату (кнопка «📥 Скачать Excel») по тем же правилам.</p>
+                <p><b>⚠️ Если сервис 1С недоступен</b> — вся история отчётов на портале продолжает работать,
+                временно невозможна только подгрузка новых дат.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeModal('reoHelpModal')">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ REO: диалог A+C (даты нет в истории) -->
+    <div id="reoDateDialog" class="modal-overlay">
+        <div class="modal">
+            <h3 class="modal-title">📅 Данных на эту дату нет</h3>
+            <p id="reoDateDialogText" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;"></p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="reoDialogNo" onclick="reoDialogAnswer(false)">Нет, подгрузить из 1С</button>
+                <button class="btn btn-primary" id="reoDialogYes" onclick="reoDialogAnswer(true)">Да, устроит</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ REO: редактор стоимостей договоров (accounting/admin) -->
+    <div id="reoTermsModal" class="modal-overlay">
+        <div class="modal" style="max-width: 760px;">
+            <h3 class="modal-title">💰 Стоимости договоров и лимиты аванса</h3>
+            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">
+                Стоимость (колонка B) и лимит аванса (колонка I) — данных нет в 1С, справочник портала.
+                После сохранения дашборд пересчитается.
+            </p>
+            <div class="table-wrapper" style="max-height: 420px; overflow-y: auto;">
+                <table class="data-table reo-tree" id="reoTermsTable">
+                    <thead><tr>
+                        <th>Объект</th><th>Договор</th>
+                        <th class="num">Стоимость по договору, ₽</th>
+                        <th class="num">Лимит аванса (доля)</th>
+                        <th class="num" title="Объект завершён, стоимость договора не выбрана полностью (остаток — ждёт дс/перенос)">Завершён</th>
+                    </tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="reoTermsError" class="login-error"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('reoTermsModal')">Отмена</button>
+                <button class="btn btn-primary" id="reoTermsSave" onclick="reoSaveTerms()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ АДМИН: управление пользователями -->
+    <div id="modalUsers" class="modal-overlay">
+        <div class="modal" style="max-width: 820px;">
+            <h3 class="modal-title">👥 Пользователи портала</h3>
+            <div class="table-wrapper" style="max-height: 420px; overflow-y: auto;">
+                <table class="data-table" id="usersTable">
+                    <thead><tr>
+                        <th>Email</th><th>ФИО</th><th>Роль</th>
+                        <th>Активен</th><th>Смена пароля</th><th>Действие</th>
+                    </tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="newPasswordBox" style="display:none; margin-top: 1rem; padding: 1rem; border-radius: 8px; background: rgba(74, 222, 128, 0.12); border: 1px solid var(--accent-green);">
+                <div style="color: var(--accent-green); font-weight: 600; margin-bottom: 0.5rem;">
+                    ✅ Пароль сформирован для <span id="npEmail"></span> — покажите его пользователю ЛИЧНО:
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <input type="text" id="npValue" class="modal-input" readonly style="font-family: monospace; font-size: 1.1rem; letter-spacing: 0.05em;">
+                    <button class="btn btn-small btn-icon" style="width:auto;" onclick="copyToClipboard(document.getElementById('npValue').value, this)">📋</button>
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem;">
+                    Пользователь обязан сменить его при первом входе. Больше этот пароль нигде не показывается.
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('modalUsers')">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const state = {
+            report: null,
+            role: 'admin',
+            user: null,
+            uploadedFile: null,
+            isProcessing: false,
+            lastUploadTime: null,
+            lastEtlStats: null,
+            reportData: null,
+            currentAdjustmentRow: null,
+            errorLogData: null,
+            errorLogFilters: {
+                errorType: 'all',
+                resolved: 'all',
+                workflow: 'all'
+            }
+        };
+
+        // ✅ ГЛОБАЛЬНЫЙ КОНТЕЙНЕР ДЛЯ ДАННЫХ STAGING
+        window.stagedFile = null;
+
+        const reports = [
+            { value: 'osv_6002', label: 'Анализ ОСВ 60.02' },
+            { value: 'reo', label: 'Демо-аналитика', roles: ['management', 'accounting', 'admin'] }
+        ];
+
+        // ✅ АВТОРИЗАЦИЯ: логин/проверка/смена пароля/выход через [DEV]_IN_Auth
+        const API_BASE = 'http://127.0.0.1:8000/webhook';
+
+        async function authRequest(payload) {
+            const response = await fetch(API_BASE + '/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            // n8n отдаёт JSON и при 401/403/500 — читаем тело всегда
+            try { return await response.json(); } catch (e) {
+                return { status: 'error', message: 'Сервер авторизации недоступен' };
+            }
+        }
+
+        function showLogin(message) {
+            document.getElementById('loginOverlay').classList.add('active');
+            const errBox = document.getElementById('loginError');
+            if (message) {
+                errBox.textContent = message;
+                errBox.classList.add('visible');
+            } else {
+                errBox.classList.remove('visible');
+            }
+        }
+
+        function hideLogin() {
+            document.getElementById('loginOverlay').classList.remove('active');
+        }
+
+        function applyUser(token, data) {
+            state.user = Object.assign({ token: token }, data);
+            document.getElementById('userAvatar').textContent = (data.display_name || data.email || '?').trim()[0] || '?';
+            document.getElementById('userName').textContent = data.display_name || data.email;
+            // SANDBOX-селектор ролей — только для администратора
+            const isAdmin = data.role === 'admin';
+            document.getElementById('adminSandbox').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('btnUsers').style.display = isAdmin ? '' : 'none';
+            if (!isAdmin) {
+                state.role = data.role;
+                localStorage.removeItem('selectedRole');
+            }
+            hideLogin();
+            resetIdleTimer();
+            if (data.must_change_password) {
+                openChangePassword(true);
+            }
+            syncReportOptions();
+            if (state.report === 'reo' && !reoVisible()) {
+                state.report = null;
+                localStorage.removeItem('selectedReport');
+                document.getElementById('reportSelect').value = '';
+            }
+            renderWorkspace();
+            if (state.report) {
+                fetchUploadStatus();
+            }
+        }
+
+        async function initAuth() {
+            const token = localStorage.getItem('portalToken');
+            if (!token) { showLogin(); return; }
+            const result = await authRequest({ action: 'check', token: token });
+            if (result.status === 'success' && result.data) {
+                applyUser(token, result.data);
+            } else {
+                localStorage.removeItem('portalToken');
+                showLogin();
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errBox = document.getElementById('loginError');
+            errBox.classList.remove('visible');
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Вход...';
+            try {
+                const result = await authRequest({ action: 'login', email: email, password: password });
+                if (result.status === 'success' && result.data) {
+                    localStorage.setItem('portalToken', result.data.token);
+                    document.getElementById('loginPassword').value = '';
+                    applyUser(result.data.token, result.data);
+                } else {
+                    errBox.textContent = result.message || 'Ошибка входа';
+                    errBox.classList.add('visible');
+                }
+            } catch (e) {
+                errBox.textContent = 'Нет соединения с сервером';
+                errBox.classList.add('visible');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Войти';
+            }
+        }
+
+        // ✅ ТАЙМЕР НЕАКТИВНОСТИ (п.8 правок 02.11.26): час без действий — разлогин.
+        // Серверная сессия удаляется (как кнопка «Выход»); для закрытых вкладок
+        // сессию страхует скользящий TTL 8 ч на сервере (auth.py).
+        const IDLE_TIMEOUT_MS = 60 * 60 * 1000;
+        let idleTimer = null;
+        let lastActivityTs = 0;
+        function stopIdleTimer() {
+            if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+        }
+        function resetIdleTimer() {
+            if (!state.user) { stopIdleTimer(); return; }
+            const now = Date.now();
+            // троттлинг: пересчёт таймера не чаще раза в 30 с (иначе mousemove
+            // перезапускал бы его на каждое движение)
+            if (idleTimer && now - lastActivityTs < 30000) { lastActivityTs = now; return; }
+            lastActivityTs = now;
+            stopIdleTimer();
+            idleTimer = setTimeout(() => {
+                idleTimer = null;
+                if (state.user) handleLogout(true);
+            }, IDLE_TIMEOUT_MS);
+        }
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'].forEach(ev =>
+            document.addEventListener(ev, resetIdleTimer, { passive: true }));
+
+        async function handleLogout(idle) {
+            stopIdleTimer();
+            const token = state.user && state.user.token;
+            if (token) {
+                try { await authRequest({ action: 'logout', token: token }); } catch (e) {}
+            }
+            localStorage.removeItem('portalToken');
+            state.user = null;
+            showLogin(idle ? '⏱️ Сессия завершена после часа неактивности. Войдите заново' : '');
+        }
+
+        function openChangePassword(mandatory) {
+            document.getElementById('pwdOld').value = '';
+            document.getElementById('pwdNew1').value = '';
+            document.getElementById('pwdNew2').value = '';
+            const errBox = document.getElementById('pwdError');
+            errBox.classList.remove('visible');
+            document.getElementById('passwordMandatoryNote').style.display = mandatory ? 'block' : 'none';
+            document.getElementById('pwdCancelBtn').style.display = mandatory ? 'none' : '';
+            document.getElementById('modalPassword').classList.add('active');
+        }
+
+        async function handleChangePassword(event) {
+            if (event) event.preventDefault();
+            const oldPwd = document.getElementById('pwdOld').value;
+            const new1 = document.getElementById('pwdNew1').value;
+            const new2 = document.getElementById('pwdNew2').value;
+            const errBox = document.getElementById('pwdError');
+            errBox.classList.remove('visible');
+            if (new1.length < 6) {
+                errBox.textContent = 'Новый пароль должен быть не короче 6 символов';
+                errBox.classList.add('visible');
+                return;
+            }
+            if (new1 !== new2) {
+                errBox.textContent = 'Пароли не совпадают';
+                errBox.classList.add('visible');
+                return;
+            }
+            const result = await authRequest({
+                action: 'change_password',
+                token: state.user.token,
+                old_password: oldPwd,
+                new_password: new1
+            });
+            if (result.status === 'success') {
+                state.user.must_change_password = false;
+                closeModal('modalPassword');
+                alert('Пароль успешно изменён');
+            } else {
+                errBox.textContent = result.message || 'Ошибка смены пароля';
+                errBox.classList.add('visible');
+            }
+        }
+
+        // ✅ REO: workspace дашборда (этап 4в)
+        const REO_COLORS = ['#4ade80', '#38bdf8', '#f0af42', '#f97316', '#a78bfa', '#f472b6', '#34d399', '#60a5fa'];
+        const REO_ROLE_OK = ['management', 'accounting', 'admin'];
+
+        function reoVisible() {
+            return REO_ROLE_OK.includes(state.role);
+        }
+
+        function reoCanEditTerms() {
+            return ['admin', 'accounting'].includes(state.role);
+        }
+
+        function syncReportOptions() {
+            const opt = document.querySelector('#reportSelect option[value="reo"]');
+            if (opt) opt.style.display = reoVisible() ? '' : 'none';
+        }
+
+        function reoRequest(payload) {
+            return fetch(API_BASE + '/report-reo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.assign({ token: state.user.token }, payload))
+            }).then(r => r.json()).catch(() => ({ status: 'error', code: 500, message: 'Нет соединения с сервером' }));
+        }
+
+        function reoWorkspaceHTML() {
+            return `
+                <div class="workspace-reo">
+                    <div class="reo-toolbar">
+                        <label>📅 Дата отчёта
+                            <input type="text" id="reoDate" class="reo-date-input" placeholder="ДД.ММ.ГГГГ" maxlength="10" inputmode="numeric" onchange="reoOnDateChange()">
+                            <input type="date" id="reoDatePick" class="reo-date-hidden" tabindex="-1" aria-hidden="true" onchange="reoPickChanged('reoDate')">
+                            <button type="button" class="btn-cal" title="Выбрать в календаре" onclick="reoOpenPicker('reoDatePick')">🗓️</button>
+                        </label>
+                        <div class="reo-date-info" id="reoDateInfo" title="Плановая выгрузка — каждый вторник к 09:00 МСК. Свежайшая дата данных — сегодня минус 2 рабочих дня. Подробнее — кнопка «Памятка»">Загрузка данных...</div>
+                        <button class="btn btn-small btn-icon" style="width:auto;" title="Сроки плановых выгрузок и лаг данных" onclick="reoOpenHelp()">❓ Памятка</button>
+                        ${reoCanEditTerms() ? '<button class="btn btn-small btn-icon" style="width:auto;" onclick="reoOpenTerms()">💰 Стоимости договоров</button>' : ''}
+                        <button class="btn btn-primary btn-small" style="width:auto;" onclick="reoOpenDownload()">📥 Скачать Excel</button>
+                    </div>
+
+                    <div class="reo-kpi-grid" id="reoKpi"></div>
+                    <div class="reo-crumbs" id="reoCrumbs"></div>
+
+                    <div class="reo-tree-card">
+                        <h3 class="card-title" style="font-size:1.1rem;">🌳 Структура портфеля <span style="font-weight:400;font-size:0.8rem;color:var(--text-secondary);">(клик по строке — выбор уровня, ▸ — свернуть)</span></h3>
+                        <div class="table-wrapper" id="reoTree"></div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card wide">
+                            <h3 class="chart-title">Динамика выполнения по объектам</h3>
+                            <div class="chart-tall"><canvas id="reoChartReal"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3 class="chart-title">Остаток незакрытых авансов по договорам в разрезе объектов</h3>
+                            <div style="height:270px;"><canvas id="reoChartBalance"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3 class="chart-title">Доля выполнения от стоимости договора</h3>
+                            <div style="height:270px;"><canvas id="reoChartExec"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3 class="chart-title">Структура полученных оплат</h3>
+                            <div style="height:270px;"><canvas id="reoChartTypes"></canvas></div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function initReoWorkspace() {
+            state.reo = { meta: null, dashboard: null, selected: null, path: [], expanded: {} };
+            loadReo(null);
+        }
+
+        function reoSetInfo(html) {
+            document.getElementById('reoDateInfo').innerHTML = html;
+        }
+
+        function reoShowProgress(text) {
+            // заметный индикатор долгих операций: спиннер + бегущая полоса
+            document.getElementById('reoDateInfo').innerHTML = `
+                <div class="reo-progress">
+                    <div class="reo-spinner"></div>
+                    <span class="reo-progress-text">${text}</span>
+                    <div class="reo-progress-bar"><div class="reo-progress-fill"></div></div>
+                </div>`;
+        }
+
+        async function loadReo(dateStr) {
+            reoShowProgress('Загрузка данных...');
+            const result = await reoRequest({ format: 'dashboard', date: dateStr || undefined });
+            if (result.status === 'error') {
+                if (result.code === 401) { handleLogout(); return; }
+                reoSetInfo('<span class="warn">❌ ' + (result.message || 'Ошибка загрузки') + '</span>');
+                return;
+            }
+            state.reo.meta = result.data.meta;
+            state.reo.dashboard = result.data.dashboard;
+            state.reo.selected = null;
+            state.reo.path = [];
+            state.reo.expanded = {};   // по умолчанию все уровни свёрнуты (решение 2026-11-01)
+
+            const meta = state.reo.meta;
+            const dateInput = document.getElementById('reoDate');
+            dateInput.value = reoIsoToRu(meta.actual_date);
+            // границы для календаря (скрытый date-input)
+            const pick = document.getElementById('reoDatePick');
+            pick.min = meta.available_dates[0] || '';
+            pick.max = meta.max_allowed_date || '';
+            pick.value = meta.actual_date;
+
+            renderReoKpi();
+            renderReoTree();
+            renderReoCrumbs();
+            renderReoCharts();
+            renderReoDateInfo();
+        }
+
+        function renderReoDateInfo() {
+            const meta = state.reo.meta;
+            let html = 'Данные <span class="actual">на ' + formatDateRU(meta.actual_date) + '</span>';
+            if (meta.fallback) {
+                html += ' <span class="warn">(на выбранную дату ' + formatDateRU(meta.requested_date) + ' данных нет — показан ближайший снапшот)</span>';
+            }
+            html += ' · снапшот: ' + ({ scheduled: 'плановый', backfill: 'восполнение истории', manual: 'ручной' }[meta.trigger_source] || meta.trigger_source);
+            reoSetInfo(html);
+        }
+
+        // --- календарь: скрытый date-input + showPicker ---
+        function reoOpenPicker(pickId) {
+            const el = document.getElementById(pickId);
+            try {
+                el.showPicker();
+            } catch (e) {
+                // старые браузеры без showPicker: показываем нативное поле рядом
+                el.style.position = 'static';
+                el.style.opacity = '1';
+                el.style.width = '150px';
+                el.style.height = 'auto';
+                el.focus();
+            }
+        }
+
+        function reoPickChanged(textId) {
+            const pickId = textId === 'reoDate' ? 'reoDatePick' : 'reoDlPick';
+            const iso = document.getElementById(pickId).value;
+            if (!iso) return;
+            document.getElementById(textId).value = reoIsoToRu(iso);
+            if (textId === 'reoDate') reoOnDateChange();
+        }
+
+        function reoOnDateChange() {
+            const iso = reoReadDateInput('reoDate');
+            if (!iso) return;   // ошибка/предупреждение уже показаны
+            reoPickDate(iso, (finalDate) => loadReo(finalDate));
+        }
+
+        // --- дата: ДД.ММ.ГГГГ <-> ГГГГ-ММ-ДД ---
+        function reoIsoToRu(iso) {
+            if (!iso) return '';
+            const [y, m, d] = iso.split('-');
+            return `${d}.${m}.${y}`;
+        }
+
+        function reoRuToIso(ru) {
+            const m = (ru || '').trim().match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+            if (!m) return null;
+            const y = Number(m[3]), mo = Number(m[2]), d = Number(m[1]);
+            const dt = new Date(y, mo - 1, d);
+            // календарная валидация без часовых поясов (31.02 -> 3 марта -> отказ)
+            if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+            return `${m[3]}-${m[2]}-${m[1]}`;
+        }
+
+        function reoReadDateInput(inputId) {
+            const meta = state.reo.meta;
+            const raw = document.getElementById(inputId).value;
+            const iso = reoRuToIso(raw);
+            if (!iso) {
+                reoSetInfo('<span class="warn">❌ Неверный формат даты — введите ДД.ММ.ГГГГ</span>');
+                document.getElementById(inputId).value = reoIsoToRu(meta.actual_date);
+                return null;
+            }
+            // дата свежее лага запрещена, ЕСЛИ на неё нет уже записанного снапшота
+            // (существующий снапшот смотреть можно — данные уже зафиксированы)
+            if (iso > meta.max_allowed_date && !meta.available_dates.includes(iso)) {
+                reoSetInfo('<span class="warn">⚠️ Дата ' + reoIsoToRu(iso) + ' свежее разрешённой ' +
+                    reoIsoToRu(meta.max_allowed_date) + ' (лаг выписки ~2 рабочих дня — данные ещё не проведены)</span>');
+                document.getElementById(inputId).value = reoIsoToRu(meta.actual_date);
+                return null;
+            }
+            if (iso < meta.available_dates[0]) {
+                reoSetInfo('<span class="warn">⚠️ Раньше первой даты в истории (' +
+                    reoIsoToRu(meta.available_dates[0]) + ') данных нет</span>');
+                document.getElementById(inputId).value = reoIsoToRu(meta.actual_date);
+                return null;
+            }
+            return iso;
+        }
+
+        // --- диалог A+C: даты нет в истории ---
+        let reoDialogCb = null;
+
+        function reoPickDate(dateStr, cb) {
+            const meta = state.reo.meta;
+            if (meta.available_dates.includes(dateStr)) { cb(dateStr); return; }
+            const older = meta.available_dates.filter(x => x <= dateStr);
+            const nearest = older.length ? older[older.length - 1] : null;
+            let text;
+            if (nearest) {
+                text = 'На дату <b>' + formatDateRU(dateStr) + '</b> данных нет. ' +
+                       'Ближайшая дата с данными — <b>' + formatDateRU(nearest) + '</b>. Устроит?';
+            } else {
+                text = 'На дату <b>' + formatDateRU(dateStr) + '</b> данных нет ' +
+                       '(и в истории нет более ранних). Подгрузить данные из 1С на эту дату? (~10 сек)';
+            }
+            document.getElementById('reoDateDialogText').innerHTML = text;
+            document.getElementById('reoDialogNo').style.display = nearest ? '' : 'none';
+            reoDialogCb = { yes: nearest, cb: cb, date: dateStr };
+            document.getElementById('reoDateDialog').classList.add('active');
+        }
+
+        function reoDialogAnswer(accept) {
+            const dlg = reoDialogCb;
+            reoDialogCb = null;
+            document.getElementById('reoDateDialog').classList.remove('active');
+            if (!dlg) return;
+            if (accept && dlg.yes) {
+                dlg.cb(dlg.yes);
+            } else {
+                // «Нет» → подгрузка из 1С на точную дату
+                reoShowProgress('Подгрузка данных из 1С на ' + formatDateRU(dlg.date) + ' (~10 сек)...');
+                reoRequest({ action: 'fetch', date: dlg.date }).then(res => {
+                    if (res.status === 'error') {
+                        if (res.code === 401) { handleLogout(); return; }
+                        reoSetInfo('<span class="warn">❌ ' + (res.message || 'Ошибка подгрузки') + '</span>');
+                        return;
+                    }
+                    dlg.cb(dlg.date);
+                });
+            }
+        }
+
+        // --- KPI ---
+        function reoNodeCost(node) {
+            if (node.cost !== undefined && node.cost !== null) return node.cost;
+            let sum = 0;
+            (node.children || []).forEach(ch => { sum += reoNodeCost(ch); });
+            return sum;
+        }
+
+        function reoNodeExec(node) {
+            if (node.execution_pct !== undefined && node.execution_pct !== null) return node.execution_pct;
+            const cost = reoNodeCost(node);
+            if (!cost || !node.metrics) return null;
+            return node.metrics.realization / cost * 100;
+        }
+
+        // узел «завершён», если завершены все объекты-листья под ним
+        // (флаг из справочника; вариант 3 правок 02.11.26)
+        function reoNodeCompleted(node) {
+            if (node.completed === true) return true;
+            const kids = node.children || [];
+            if (!kids.length) return false;
+            return kids.every(reoNodeCompleted);
+        }
+
+        function renderReoKpi() {
+            const d = state.reo.dashboard;
+            const node = state.reo.selected;
+            const m = node ? node.metrics : (d.kpi.metrics || d.kpi);
+            const cost = node ? reoNodeCost(node) : d.kpi.portfolio_cost;
+            const exec = node ? reoNodeExec(node) : null;
+            // расшифровка «Получено оплат» (решение 2026-11-02): деньги (авансы +
+            // оплата работ) / цессии / удержание по БГ — единая логика формирования
+            const payParts = [
+                ['Аванс деньгами', m.advance_money],
+                ['Аванс (цессии)', m.advance_cession],
+                ['Оплата работ', m.works_paid],
+                ['Удержание по БГ', m.bg_retention]
+            ];
+            const paySub = payParts.map(p =>
+                `<div class="kpi-sub"><span>${p[0]}</span><b>${formatCurrency(p[1] || 0)}</b></div>`).join('');
+            const cards = [
+                { icon: '📅', label: node ? ('Выбрано: ' + node.name) : 'Данные актуальны на', value: node ? '' : formatDateRU(d.kpi.data_date) },
+                { icon: '💰', label: 'Стоимость договоров', value: formatCurrency(cost) },
+                { icon: '�', label: 'Сдано работ заказчику', value: formatCurrency(m.realization) },
+                { icon: '📥', label: 'Получено оплат', value: formatCurrency(m.received), sub: paySub },
+                { icon: '⚖️', label: 'Незакрытый остаток авансов', value: formatCurrency(m.advance_balance) }
+            ];
+            let html = cards.map(c => `
+                <div class="kpi-card">
+                    <div class="kpi-icon">${c.icon}</div>
+                    <div class="kpi-value" style="font-size:1.15rem;">${c.value}</div>
+                    ${c.sub || ''}
+                    <div class="kpi-label">${c.label}</div>
+                </div>`).join('');
+            // доля выполнения от стоимости — всегда, включая весь портфель
+            const execAll = (node ? reoNodeExec(node)
+                                : (d.kpi.portfolio_cost ? d.kpi.realization / d.kpi.portfolio_cost * 100 : null));
+            const nodeDone = node ? reoNodeCompleted(node) : false;
+            if (nodeDone) {
+                const realPct = execAll !== null && execAll !== undefined ? execAll.toFixed(1) + '%' : '';
+                html += `<div class="kpi-card"><div class="kpi-icon">📊</div>
+                    <div class="kpi-value reo-exec-ok" style="font-size:1.15rem;" title="Объект завершён${realPct ? ' — по договору освоено ' + realPct : ''}">✓ завершён</div>
+                    <div class="kpi-label">Доля выполнения от стоимости договора</div></div>`;
+            } else if (execAll !== null && execAll !== undefined) {
+                const cls = execAll >= 50 ? 'reo-exec-ok' : (execAll >= 20 ? 'reo-exec-mid' : 'reo-exec-low');
+                html += `<div class="kpi-card"><div class="kpi-icon">📊</div>
+                    <div class="kpi-value ${cls}" style="font-size:1.15rem;">${execAll.toFixed(1)}%</div>
+                    <div class="kpi-label">Доля выполнения от стоимости договора</div></div>`;
+            }
+            document.getElementById('reoKpi').innerHTML = html;
+        }
+
+        // --- дерево ---
+        function reoWalk(nodes, level, out) {
+            nodes.forEach(n => {
+                const hasKids = (n.children || []).length > 0;
+                const isOpen = state.reo.expanded[n.name] === true;   // по умолчанию свёрнуто
+                out.push({ node: n, level: level, hasKids: hasKids, isOpen: isOpen });
+                if (hasKids && isOpen) reoWalk(n.children, level + 1, out);
+            });
+        }
+
+        function renderReoTree() {
+            const d = state.reo.dashboard;
+            const rows = [];
+            reoWalk(d.tree, 1, rows);
+            const fmt = v => formatCurrency(v);
+            let html = `<table class="data-table reo-tree">
+                <thead><tr>
+                    <th>Объект / Договор</th>
+                    <th class="num">Стоимость по договору</th>
+                    <th class="num">Выполнено работ</th>
+                    <th class="num">Получено оплат</th>
+                    <th class="num">Закрытый аванс</th>
+                    <th class="num">Незакрытый остаток аванса</th>
+                    <th class="num">Доля выполнения от стоимости договора</th>
+                </tr></thead><tbody>`;
+            // строка ВСЕГО
+            const k = d.kpi;
+            const km = k.metrics || k;   // полные метрики портфеля (п.6: закрытый аванс)
+            html += `<tr class="lvl0 ${!state.reo.selected ? 'selected' : ''}" onclick="reoSelect(null)" style="cursor:pointer;">
+                <td>🏛️ ВСЕГО (портфель)</td>
+                <td class="num">${fmt(k.portfolio_cost)}</td>
+                <td class="num">${fmt(k.realization)}</td>
+                <td class="num">${fmt(k.received)}</td>
+                <td class="num">${fmt(km.closed_advance || 0)}</td>
+                <td class="num">${fmt(k.advance_balance)}</td>
+                <td class="num">${k.portfolio_cost ? (k.realization / k.portfolio_cost * 100).toFixed(1) + '%' : '—'}</td>
+            </tr>`;
+            rows.forEach(r => {
+                const n = r.node;
+                const m = n.metrics || {};
+                const tw = r.hasKids
+                    ? `<span class="tw" title="${r.isOpen ? 'Свернуть' : 'Развернуть'}" onclick="event.stopPropagation(); reoToggle('${n.name.replace(/'/g, "\\'")}')">${r.isOpen ? '▾' : '▸'}</span>`
+                    : '<span class="tw empty"></span>';
+                const exec = reoNodeExec(n);
+                const done = reoNodeCompleted(n);
+                const execHtml = done
+                    ? `<span class="reo-exec-ok" title="Объект завершён${exec !== null ? ' — по договору освоено ' + exec.toFixed(1) + '%' : ''}">✓ завершён</span>`
+                    : (exec === null ? '—' : `<span class="${exec >= 50 ? 'reo-exec-ok' : (exec >= 20 ? 'reo-exec-mid' : 'reo-exec-low')}">${exec.toFixed(1)}%</span>`);
+                const icon = r.level === 1 ? '📍' : (r.hasKids ? '📄' : '🏗️');
+                html += `<tr class="lvl${r.level} ${state.reo.selected === n ? 'selected' : ''}" onclick="reoSelectNode(this, ${r.level})" data-node='${JSON.stringify(n).replace(/'/g, '&#39;')}'>
+                    <td>${tw}${icon} ${n.name}</td>
+                    <td class="num">${n.cost !== undefined && n.cost !== null ? fmt(n.cost) : (r.hasKids ? fmt(reoNodeCost(n)) : '—')}</td>
+                    <td class="num">${fmt(m.realization || 0)}</td>
+                    <td class="num">${fmt(m.received || 0)}</td>
+                    <td class="num">${fmt(m.closed_advance || 0)}</td>
+                    <td class="num">${fmt(m.advance_balance || 0)}</td>
+                    <td class="num">${execHtml}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('reoTree').innerHTML = html;
+        }
+
+        function reoToggle(name) {
+            state.reo.expanded[name] = state.reo.expanded[name] === false ? true : false;
+            renderReoTree();
+        }
+
+        function reoSelectNode(rowEl, level) {
+            const node = JSON.parse(rowEl.dataset.node);
+            state.reo.selected = node;
+            // клик по строке раскрывает следующий уровень (сворачивание — только значком)
+            if ((node.children || []).length && state.reo.expanded[node.name] !== true) {
+                state.reo.expanded[node.name] = true;
+            }
+            // путь ищем по имени (node — распарсенная копия, ссылка не совпадёт)
+            state.reo.path = reoFindPath(state.reo.dashboard.tree, node.name) || [];
+            reoExpandAncestors();
+            renderReoTree();
+            renderReoCrumbs();
+            renderReoKpi();
+        }
+
+        function reoExpandAncestors() {
+            // выбранный узел должен быть виден: раскрываем всех его предков
+            (state.reo.path || []).forEach((n, i, arr) => {
+                if (i < arr.length - 1) state.reo.expanded[n.name] = true;
+            });
+        }
+
+        function reoSelect() {
+            state.reo.selected = null;
+            state.reo.path = [];
+            renderReoTree();
+            renderReoCrumbs();
+            renderReoKpi();
+        }
+
+        function reoFindPath(nodes, name) {
+            for (const n of nodes) {
+                if (n.name === name) return [n];
+                if (n.children) {
+                    const sub = reoFindPath(n.children, name);
+                    if (sub) return [n].concat(sub);
+                }
+            }
+            return null;
+        }
+
+        function renderReoCrumbs() {
+            const el = document.getElementById('reoCrumbs');
+            const sel = state.reo.selected;
+            if (!sel) { el.innerHTML = '<span class="current">🏛️ Весь портфель</span>'; return; }
+            let html = '<a onclick="reoSelect()">🏛️ Весь портфель</a>';
+            state.reo.path.forEach((n, i) => {
+                html += ' <span class="sep">›</span> ';
+                if (i === state.reo.path.length - 1) {
+                    html += `<span class="current">${n.name}</span>`;
+                } else {
+                    html += `<a onclick="reoSelectByName('${n.name.replace(/'/g, "\\'")}')">${n.name}</a>`;
+                }
+            });
+            el.innerHTML = html;
+        }
+
+        function reoSelectByName(name) {
+            const found = reoFindByName(state.reo.dashboard.tree, name);
+            if (found) {
+                state.reo.selected = found;
+                state.reo.path = reoFindPath(state.reo.dashboard.tree, name) || [];
+                reoExpandAncestors();
+                renderReoTree();
+                renderReoCrumbs();
+                renderReoKpi();
+            }
+        }
+
+        function reoFindByName(nodes, name) {
+            for (const n of nodes) {
+                if (n.name === name) return n;
+                if (n.children) {
+                    const f = reoFindByName(n.children, name);
+                    if (f) return f;
+                }
+            }
+            return null;
+        }
+
+        // --- графики ---
+        function reoLeaves(nodes, out) {
+            (nodes || []).forEach(n => {
+                if (n.children && n.children.length) reoLeaves(n.children, out);
+                else out.push(n);
+            });
+            return out;
+        }
+
+        function renderReoCharts() {
+            const d = state.reo.dashboard;
+            const s = d.series;
+            window.reoCharts = window.reoCharts || {};
+            Object.values(window.reoCharts).forEach(c => c.destroy());
+
+            // 1. Динамика реализации по объектам
+            const objects = Object.keys(s.by_object);
+            window.reoCharts.real = new Chart(document.getElementById('reoChartReal'), {
+                type: 'line',
+                data: {
+                    labels: s.dates.map(formatDateRU),
+                    datasets: objects.map((o, i) => ({
+                        label: o, data: s.by_object[o],
+                        borderColor: REO_COLORS[i % REO_COLORS.length],
+                        backgroundColor: REO_COLORS[i % REO_COLORS.length] + '33',
+                        tension: 0.25, fill: false, borderWidth: 2, pointRadius: 3
+                    }))
+                },
+                options: Object.assign(reoLineOpts(), { maintainAspectRatio: false })
+            });
+
+            // 2. Поступления по типам (стек)
+            const types = [
+                { key: 'advance_money', label: 'Авансы (деньги)', color: '#4ade80' },
+                { key: 'advance_cession', label: 'Авансы (цессия)', color: '#a78bfa' },
+                { key: 'works_paid', label: 'Оплата работ', color: '#38bdf8' },
+                { key: 'bg_retention', label: 'Удержание по БГ', color: '#fbbf24' }
+            ];
+            window.reoCharts.types = new Chart(document.getElementById('reoChartTypes'), {
+                type: 'bar',
+                data: {
+                    labels: s.dates.map(formatDateRU),
+                    datasets: types.map(t => ({
+                        label: t.label, data: s.by_type[t.key],
+                        backgroundColor: t.color + '99', borderColor: t.color, borderWidth: 1
+                    }))
+                },
+                options: Object.assign(reoBarOpts(true), { maintainAspectRatio: false })
+            });
+
+            // 3. Незакрытые авансы: по договорам в разрезе объектов
+            //    (группировка как в таблице — площадка → договор → объект;
+            //     подпись = ПОЛНОЕ имя объекта с договором — иначе одинаковые
+            //     имена объектов разных договоров не отличить; разделителей
+            //     между договорами нет — договоры различаются цветом
+            //     столбца, решение 2026-11-03; цвет столбца = договор)
+            const CONTRACT_COLORS = {
+                'дог.№101': '#4ade80', 'дог.№102': '#38bdf8',
+                'дог.№103': '#f0af42', 'дог.№104': '#a78bfa'
+            };
+            const balRows = [];
+            (function walk(nodes) {
+                (nodes || []).forEach(n => {
+                    if (n.children && n.children.length) { walk(n.children); return; }
+                    if ((n.metrics.advance_balance || 0) === 0) return;
+                    balRows.push(n);
+                });
+            })(d.tree);
+            window.reoCharts.balance = new Chart(document.getElementById('reoChartBalance'), {
+                type: 'bar',
+                data: {
+                    labels: balRows.map(l => l ? l.name : ''),
+                    datasets: [{
+                        label: 'Незакрытый остаток аванса',
+                        data: balRows.map(l => l ? (l.metrics.advance_balance || 0) : null),
+                        maxBarThickness: 14,   // полоски вдвое тоньше строки (решение 2026-11-03)
+                        backgroundColor: balRows.map(l => l ? (CONTRACT_COLORS[l.contract_no] || '#f0af42') + '99' : 'transparent'),
+                        borderColor: balRows.map(l => l ? (CONTRACT_COLORS[l.contract_no] || '#f0af42') : 'transparent'),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#fff', font: { family: 'Montserrat', size: 10 }, padding: 10,
+                                generateLabels: () => Object.entries(CONTRACT_COLORS).map(([k, c]) => ({
+                                    text: k, fillStyle: c + '99', strokeStyle: c, lineWidth: 1,
+                                    fontColor: '#ffffff'
+                                }))
+                            }
+                        },
+                        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + formatCurrency(c.parsed.x) } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#fff', callback: v => (v / 1e6).toFixed(0) + ' млн' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#fff', autoSkip: false, font: { family: 'Montserrat', size: 10 } }, grid: { display: false } }
+                    }
+                }
+            });
+
+            // 4. Исполнение от стоимости — ВСЕ объекты со стоимостью
+            //    (п.2 правок 02.11.26: раньше список брался из графика авансов
+            //     с фильтром «остаток ≠ 0», и объекты с полностью закрытым
+            //     авансом, как Сосновый-2, ошибочно выпадали).
+            //    Завершённые объекты (флаг в справочнике) — столбец 100%
+            const execLeaves = reoLeaves(d.tree, [])
+                .filter(l => l.execution_pct !== undefined && l.execution_pct !== null)
+                .sort((a, b) => ((b.completed ? 100 : b.execution_pct) - (a.completed ? 100 : a.execution_pct)));
+            window.reoCharts.exec = new Chart(document.getElementById('reoChartExec'), {
+                type: 'bar',
+                data: {
+                    labels: execLeaves.map(l => l.name),
+                    datasets: [{
+                        label: 'Исполнение, %',
+                        data: execLeaves.map(l => l.completed ? 100 : l.execution_pct),
+                        backgroundColor: execLeaves.map(l => l.completed ? '#4ade8099' : '#38bdf899'),
+                        borderColor: execLeaves.map(l => l.completed ? '#4ade80' : '#38bdf8'),
+                        borderWidth: 1
+                    }]
+                },
+                options: Object.assign(reoBarOpts(false, true, '%'), { maintainAspectRatio: false })
+            });
+        }
+
+        function reoLineOpts() {
+            return {
+                responsive: true, maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#fff', font: { family: 'Montserrat', size: 10 }, padding: 10 } },
+                    tooltip: { callbacks: { label: c => c.dataset.label + ': ' + formatCurrency(c.parsed.y) } }
+                },
+                scales: {
+                    y: { ticks: { color: '#fff', callback: v => (v / 1e6).toFixed(0) + ' млн' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    x: { ticks: { color: '#fff' }, grid: { display: false } }
+                }
+            };
+        }
+
+        function reoBarOpts(stacked, horizontal, suffix) {
+            return {
+                responsive: true, maintainAspectRatio: true,
+                indexAxis: horizontal ? 'y' : 'x',
+                plugins: {
+                    legend: stacked ? { position: 'bottom', labels: { color: '#fff', font: { family: 'Montserrat', size: 10 } } } : { display: false },
+                    tooltip: { callbacks: { label: c => (c.dataset.label ? c.dataset.label + ': ' : '') + (suffix === '%' ? c.parsed.x.toFixed(1) + '%' : formatCurrency(horizontal ? c.parsed.x : c.parsed.y)) } }
+                },
+                scales: {
+                    x: stacked
+                        ? { stacked: true, ticks: { color: '#fff', callback: v => (v / 1e6).toFixed(0) + ' млн' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                        : (horizontal
+                            ? { ticks: { color: '#fff', callback: v => suffix === '%' ? v + '%' : (v / 1e6).toFixed(0) + ' млн' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                            : { ticks: { color: '#fff' }, grid: { display: false } }),
+                    y: stacked
+                        ? { stacked: true, ticks: { color: '#fff', callback: v => (v / 1e6).toFixed(0) + ' млн' }, grid: { display: false } }
+                        : (horizontal
+                            ? { ticks: { color: '#fff' }, grid: { display: false } }
+                            : { ticks: { color: '#fff', callback: v => suffix === '%' ? v + '%' : (v / 1e6).toFixed(0) + ' млн' }, grid: { color: 'rgba(255,255,255,0.1)' } })
+                }
+            };
+        }
+
+        // --- памятка (п.5 правок 02.11.26) ---
+        function reoOpenHelp() {
+            document.getElementById('reoHelpModal').classList.add('active');
+        }
+
+        // --- скачивание Excel ---
+        function reoOpenDownload() {
+            const meta = state.reo.meta;
+            const inp = document.getElementById('reoDlDate');
+            inp.value = reoIsoToRu(meta.actual_date);
+            const pick = document.getElementById('reoDlPick');
+            pick.min = meta.available_dates[0] || '';
+            pick.max = meta.max_allowed_date || '';
+            pick.value = meta.actual_date;
+            document.getElementById('reoDlError').classList.remove('visible');
+            document.getElementById('reoDownloadModal').classList.add('active');
+        }
+
+        async function reoDownloadExcel() {
+            const iso = reoReadDateInput('reoDlDate');
+            if (!iso) {
+                const errBox = document.getElementById('reoDlError');
+                errBox.textContent = 'Неверный формат даты — введите ДД.ММ.ГГГГ (или дата вне допустимого диапазона)';
+                errBox.classList.add('visible');
+                return;
+            }
+            document.getElementById('reoDlError').classList.remove('visible');
+            reoPickDate(iso, async (finalDate) => {
+                document.getElementById('reoDownloadModal').classList.remove('active');
+                reoShowProgress('Формирование Excel на ' + formatDateRU(finalDate) + '...');
+                const result = await reoRequest({ format: 'excel', date: finalDate });
+                if (result.status === 'error') {
+                    if (result.code === 401) { handleLogout(); return; }
+                    reoSetInfo('<span class="warn">❌ ' + (result.message || 'Ошибка формирования') + '</span>');
+                    return;
+                }
+                const ex = result.data.excel;
+                const bytes = atob(ex.file_data);
+                const arr = new Uint8Array(bytes.length);
+                for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+                const blob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = ex.file_name;
+                a.click();
+                URL.revokeObjectURL(url);
+                reoSetInfo('✅ Файл <span class="actual">' + ex.file_name + '</span> скачан' + (ex.cached ? ' (из кэша)' : '') + '.');
+            });
+        }
+
+        // --- редактор стоимостей (4г) ---
+        async function reoOpenTerms() {
+            reoShowProgress('Загрузка справочника...');
+            const res = await reoRequest({ action: 'terms_get' });
+            if (res.status === 'error') {
+                if (res.code === 401) { handleLogout(); return; }
+                reoSetInfo('<span class="warn">❌ ' + (res.message || 'Ошибка загрузки') + '</span>');
+                return;
+            }
+            state.reo.terms = res.data.terms;
+            const tb = document.querySelector('#reoTermsTable tbody');
+            tb.innerHTML = state.reo.terms.map((t, i) => `
+                <tr>
+                    <td>${t.object_name}</td>
+                    <td style="font-size:0.8rem;">${t.contract_no || '—'}</td>
+                    <td class="num"><input type="number" step="0.01" min="0" class="terms-input"
+                        id="termCost${i}" value="${t.contract_cost}" data-obj="${t.object_name.replace(/"/g, '&quot;')}"></td>
+                    <td class="num"><input type="number" step="0.01" min="0" max="1" class="terms-input"
+                        id="termLimit${i}" value="${t.advance_limit}"></td>
+                    <td class="num"><input type="checkbox" id="termDone${i}" ${t.completed ? 'checked' : ''}
+                        title="Объект завершён — доля выполнения показывается как «✓ завершён»"></td>
+                </tr>`).join('');
+            document.getElementById('reoTermsError').classList.remove('visible');
+            document.getElementById('reoTermsModal').classList.add('active');
+            renderReoDateInfo();
+        }
+
+        async function reoSaveTerms() {
+            const errBox = document.getElementById('reoTermsError');
+            errBox.classList.remove('visible');
+            const updates = [];
+            for (let i = 0; i < state.reo.terms.length; i++) {
+                const obj = document.getElementById(`termCost${i}`).dataset.obj;
+                const cost = parseFloat(document.getElementById(`termCost${i}`).value);
+                const limit = parseFloat(document.getElementById(`termLimit${i}`).value);
+                const done = document.getElementById(`termDone${i}`).checked;
+                if (isNaN(cost) || cost < 0 || isNaN(limit) || limit < 0) {
+                    errBox.textContent = `Некорректное число у «${obj}» — проверьте значения`;
+                    errBox.classList.add('visible');
+                    return;
+                }
+                updates.push({ object_name: obj, contract_cost: cost, advance_limit: limit, completed: done });
+            }
+            const btn = document.getElementById('reoTermsSave');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Сохранение...';
+            const res = await reoRequest({ action: 'terms_set', updates: updates });
+            btn.disabled = false;
+            btn.innerHTML = '💾 Сохранить';
+            if (res.status === 'error') {
+                errBox.textContent = res.message || 'Ошибка сохранения';
+                errBox.classList.add('visible');
+                return;
+            }
+            closeModal('reoTermsModal');
+            alert('Сохранено: строк изменено — ' + res.data.changed);
+            // перезагрузить дашборд на текущую дату (стоимости влияют на KPI/дерево/графики)
+            const iso = reoRuToIso(document.getElementById('reoDate').value);
+            loadReo(iso || null);
+        }
+
+        // --- админ: пользователи и сброс пароля ---
+        function copyToClipboard(text, btn) {
+            // navigator.clipboard работает только в secure context (HTTPS/localhost);
+            // портал на http://IP:порт — нужен fallback через execCommand
+            const done = () => {
+                if (!btn) return;
+                const old = btn.innerHTML;
+                btn.innerHTML = '✓';
+                setTimeout(() => { btn.innerHTML = old; }, 1500);
+            };
+            const fallback = () => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); done(); } catch (e) {}
+                document.body.removeChild(ta);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(done).catch(fallback);
+            } else {
+                fallback();
+            }
+        }
+
+        async function openUsersModal() {
+            const res = await authRequest({ action: 'users_list', token: state.user.token });
+            if (res.status === 'error') {
+                alert(res.message || 'Ошибка загрузки пользователей');
+                return;
+            }
+            const tb = document.querySelector('#usersTable tbody');
+            tb.innerHTML = res.data.users.map(u => `
+                <tr>
+                    <td style="font-size:0.8rem;">${u.email}</td>
+                    <td>${u.display_name || '—'}</td>
+                    <td><span class="status-badge status-work">${u.role}</span></td>
+                    <td>${u.active ? '<span class="status-badge status-ok">да</span>' : '<span class="status-badge status-alarm">нет</span>'}</td>
+                    <td>${u.must_change_password ? '<span class="status-badge status-attention">ожидает</span>' : '—'}</td>
+                    <td><button class="btn btn-small btn-icon" style="width:auto;"
+                        onclick="resetUserPassword('${u.email.replace(/'/g, "\\'")}')">🔑 Сбросить пароль</button></td>
+                </tr>`).join('');
+            document.getElementById('newPasswordBox').style.display = 'none';
+            document.getElementById('modalUsers').classList.add('active');
+        }
+
+        async function resetUserPassword(email) {
+            if (!confirm('Сбросить пароль для ' + email + '?\n\nБудет сформирован новый пароль, все сессии пользователя будут завершены, при первом входе он обязан сменить пароль.')) {
+                return;
+            }
+            const res = await authRequest({ action: 'set_password', email: email, token: state.user.token });
+            if (res.status === 'error') {
+                alert(res.message || 'Ошибка сброса пароля');
+                return;
+            }
+            document.getElementById('npEmail').textContent = email;
+            document.getElementById('npValue').value = res.data.password || '';
+            document.getElementById('newPasswordBox').style.display = 'block';
+            // список НЕ перезагружаем: если сбросили свой пароль — сессия уже завершена
+            // (флаги обновятся при следующем открытии панели)
+        }
+
+        function getExpectedReportDate() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            return yesterday.toISOString().split('T')[0];
+        }
+
+        function formatDateRU(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        function changeReport() {
+            state.report = document.getElementById('reportSelect').value || null;
+            if (state.report) {
+                localStorage.setItem('selectedReport', state.report);
+            } else {
+                localStorage.removeItem('selectedReport');
+            }
+            renderWorkspace();
+            if (state.report) {
+                fetchUploadStatus();
+            }
+        }
+
+        function changeRole() {
+            state.role = document.getElementById('roleSelect').value;
+            localStorage.setItem('selectedRole', state.role);
+            renderWorkspace();
+            
+            // ✅ Если переключились на admin и выбран отчет - загружаем журнал ошибок
+            if (state.role === 'admin' && state.report) {
+                fetchErrorLog();
+            }
+        }
+
+        async function fetchUploadStatus() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/webhook/get-last-upload', {
+                    method: 'POST'
+                });
+                if (!response.ok) {
+                    throw new Error('Ошибка получения статуса загрузки');
+                }
+                const result = await response.json();
+                if (result.status === 'success' && result.data) {
+                    state.lastUploadTime = new Date(result.data.last_upload).getTime();
+                    state.lastEtlStats = {
+                        rows_processed: result.data.rows_processed
+                    };
+                } else {
+                    state.lastUploadTime = null;
+                    state.lastEtlStats = null;
+                }
+                updateReportZone();
+            } catch (error) {
+                console.error('Fetch upload status error:', error);
+                state.lastUploadTime = null;
+                updateReportZone();
+            }
+        }
+
+        // ✅ НОВАЯ ФУНКЦИЯ: Получение журнала ошибок
+        async function fetchErrorLog() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/webhook/admin-error-log', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        limit: 50,
+                        offset: 0,
+                        requestedBy: 'admin'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка получения журнала ошибок');
+                }
+
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data) {
+                    state.errorLogData = result.data;
+                    renderErrorLog();
+                } else {
+                    console.error('Error log response:', result);
+                }
+            } catch (error) {
+                console.error('Fetch error log error:', error);
+            }
+        }
+
+        // ✅ НОВАЯ ФУНКЦИЯ: Рендеринг журнала ошибок
+        function renderErrorLog() {
+            const container = document.getElementById('errorLogContent');
+            if (!container) return;
+
+            if (!state.errorLogData || !state.errorLogData.errors) {
+                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Нет данных для отображения</div>';
+                return;
+            }
+
+            const errors = state.errorLogData.errors;
+            
+            // ✅ Применяем фильтры
+            let filteredErrors = errors;
+            
+            if (state.errorLogFilters.errorType !== 'all') {
+                filteredErrors = filteredErrors.filter(e => e.error_type === state.errorLogFilters.errorType);
+            }
+            
+            if (state.errorLogFilters.resolved !== 'all') {
+                const resolvedFilter = state.errorLogFilters.resolved === 'true';
+                filteredErrors = filteredErrors.filter(e => e.resolved === resolvedFilter);
+            }
+            
+            if (state.errorLogFilters.workflow !== 'all') {
+                filteredErrors = filteredErrors.filter(e => e.workflow_name === state.errorLogFilters.workflow);
+            }
+
+            // ✅ Статистика
+            const totalErrors = errors.length;
+            const unresolvedCount = errors.filter(e => !e.resolved).length;
+            const resolvedCount = errors.filter(e => e.resolved).length;
+            const retryableCount = errors.filter(e => e.error_type === 'retryable').length;
+
+            // ✅ Уникальные воркфлоу для фильтра
+            const uniqueWorkflows = [...new Set(errors.map(e => e.workflow_name))];
+
+            // ✅ HTML статистики
+            const statsHTML = `
+                <div class="error-stats">
+                    <div class="error-stat-card total">
+                        <div class="error-stat-value">${totalErrors}</div>
+                        <div class="error-stat-label">Всего ошибок</div>
+                    </div>
+                    <div class="error-stat-card unresolved">
+                        <div class="error-stat-value">${unresolvedCount}</div>
+                        <div class="error-stat-label">Нерешённые</div>
+                    </div>
+                    <div class="error-stat-card resolved">
+                        <div class="error-stat-value">${resolvedCount}</div>
+                        <div class="error-stat-label">Решённые</div>
+                    </div>
+                    <div class="error-stat-card retryable">
+                        <div class="error-stat-value">${retryableCount}</div>
+                        <div class="error-stat-label">Retryable</div>
+                    </div>
+                </div>
+            `;
+
+            // ✅ HTML фильтров
+            const filtersHTML = `
+                <div class="error-log-filters">
+                    <select class="filter-select" onchange="filterErrorLog('errorType', this.value)">
+                        <option value="all">Все типы ошибок</option>
+                        <option value="retryable" ${state.errorLogFilters.errorType === 'retryable' ? 'selected' : ''}>Retryable</option>
+                        <option value="permanent" ${state.errorLogFilters.errorType === 'permanent' ? 'selected' : ''}>Permanent</option>
+                        <option value="validation" ${state.errorLogFilters.errorType === 'validation' ? 'selected' : ''}>Validation</option>
+                        <option value="unknown" ${state.errorLogFilters.errorType === 'unknown' ? 'selected' : ''}>Unknown</option>
+                    </select>
+                    <select class="filter-select" onchange="filterErrorLog('resolved', this.value)">
+                        <option value="all">Все статусы</option>
+                        <option value="false" ${state.errorLogFilters.resolved === 'false' ? 'selected' : ''}>Нерешённые</option>
+                        <option value="true" ${state.errorLogFilters.resolved === 'true' ? 'selected' : ''}>Решённые</option>
+                    </select>
+                    <select class="filter-select" onchange="filterErrorLog('workflow', this.value)">
+                        <option value="all">Все воркфлоу</option>
+                        ${uniqueWorkflows.map(w => `<option value="${w}" ${state.errorLogFilters.workflow === w ? 'selected' : ''}>${w}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+
+            // ✅ HTML таблицы
+            const tableHTML = filteredErrors.length > 0 ? `
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 12%;">Время</th>
+                                <th style="width: 18%;">Воркфлоу</th>
+                                <th style="width: 12%;">Шаг</th>
+                                <th style="width: 10%;">Тип</th>
+                                <th style="width: 25%;">Сообщение</th>
+                                <th style="width: 8%;">Попытки</th>
+                                <th style="width: 8%;">Кто</th>
+                                <th style="width: 7%;">Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredErrors.map(error => `
+                                <tr>
+                                    <td class="error-timestamp">${formatErrorTimestamp(error.timestamp)}</td>
+                                    <td style="font-size: 0.8rem;">${error.workflow_name || '-'}</td>
+                                    <td style="font-size: 0.8rem;">${error.step || '-'}</td>
+                                    <td>${renderErrorTypeBadge(error.error_type)}</td>
+                                    <td class="error-message-cell" title="${escapeHtml(error.error_message)}">${escapeHtml(error.error_message) || '-'}</td>
+                                    <td style="text-align: center;">${error.attempts_count || 1}</td>
+                                    <td style="font-size: 0.8rem;">${error.uploaded_by || '-'}</td>
+                                    <td>${renderResolvedBadge(error.resolved)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Нет ошибок по выбранным фильтрам</div>';
+
+            container.innerHTML = statsHTML + filtersHTML + tableHTML;
+        }
+
+        // ✅ НОВАЯ ФУНКЦИЯ: Фильтрация журнала ошибок
+        function filterErrorLog(filterType, value) {
+            state.errorLogFilters[filterType] = value;
+            renderErrorLog();
+        }
+
+        // ✅ НОВАЯ ФУНКЦИЯ: Форматирование времени ошибки
+        function formatErrorTimestamp(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            return date.toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // ✅ НОВАЯ ФУНКЦИЯ: Рендеринг бейджа типа ошибки
+        function renderErrorTypeBadge(errorType) {
+            const typeMap = {
+                'retryable': { class: 'error-type-retryable', label: 'Retry' },
+                'permanent': { class: 'error-type-permanent', label: 'Permanent' },
+                'validation': { class: 'error-type-validation', label: 'Validation' },
+                'unknown': { class: 'error-type-unknown', label: 'Unknown' }
+            };
+
+            const config = typeMap[errorType] || typeMap.unknown;
+            return `<span class="error-type-badge ${config.class}">${config.label}</span>`;
+        }
+
+        // ✅ НОВАЯ ФУНКЦИЯ: Рендеринг бейджа resolved
+        function renderResolvedBadge(resolved) {
+            if (resolved) {
+                return '<span class="resolved-badge resolved-true">✓ Решено</span>';
+            } else {
+                return '<span class="resolved-badge resolved-false">✗ Активно</span>';
+            }
+        }
+
+        // ✅ НОВАЯ ФУНКЦИЯ: Экранирование HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            state.uploadedFile = file;
+            const fileInputButton = document.querySelector('.file-input-button');
+            fileInputButton.classList.add('has-file');
+
+            const match = file.name.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+            const fileStatus = document.getElementById('fileStatus');
+
+            if (match) {
+                const fileDate = `${match[3]}-${match[2]}-${match[1]}`;
+                const expected = getExpectedReportDate();
+                if (fileDate !== expected) {
+                    fileStatus.className = 'file-status visible warning';
+                    fileStatus.innerHTML = `<span>⚠️</span><div><strong>${file.name}</strong><br>Дата в файле (${formatDateRU(fileDate)}) не совпадает с ожидаемой (${formatDateRU(expected)})</div>`;
+                } else {
+                    fileStatus.className = 'file-status visible success';
+                    fileStatus.innerHTML = `<span>✅</span><div><strong>${file.name}</strong><br>${(file.size / 1024 / 1024).toFixed(2)} MB • Загрузка...</div>`;
+                }
+            } else {
+                fileStatus.className = 'file-status visible warning';
+                fileStatus.innerHTML = `<span>⚠️</span><div><strong>${file.name}</strong><br>Не удалось определить дату отчета</div>`;
+            }
+
+            const result = await uploadStaging(file);
+
+            if (result) {
+                document.getElementById('btnUpdate').disabled = false;
+                fileStatus.innerHTML = `<span>✅</span><div><strong>${file.name}</strong><br>${(file.size / 1024 / 1024).toFixed(2)} MB • Готов к обработке</div>`;
+            } else {
+                document.getElementById('btnUpdate').disabled = true;
+                fileInputButton.classList.remove('has-file');
+            }
+        }
+
+        async function handleUpdate() {
+            if (!state.uploadedFile || state.isProcessing) return;
+
+            // ✅ ПРОВЕРКА: есть ли данные от Staging
+            if (!window.stagedFile) {
+                showError('Ошибка: данные Staging не найдены. Выберите файл заново.');
+                console.error('❌ window.stagedFile is null/undefined');
+                return;
+            }
+
+            if (!window.stagedFile.fileHash) {
+                showError('Ошибка: fileHash отсутствует. Выберите файл заново.');
+                console.error('❌ window.stagedFile.fileHash is missing:', window.stagedFile);
+                return;
+            }
+
+            state.isProcessing = true;
+            const btn = document.getElementById('btnUpdate');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Обработка...';
+
+            try {
+                const result = await processOSV();
+
+                if (result && result.status === 'success' && result.data) {
+                    state.lastUploadTime = Date.now();
+                    state.lastEtlStats = result.data;
+
+                    const { rows_processed, rows_created, rows_updated, rows_deactivated } = result.data;
+                    showEtlStats({ rows_processed, rows_created, rows_updated, rows_deactivated });
+                    updateReportZone();
+                } else {
+                    document.getElementById('fileStatus').innerHTML = `<span>❌</span><div>${result?.message || 'Ошибка обработки данных'}</div>`;
+                    document.getElementById('fileStatus').className = 'file-status visible warning';
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                document.getElementById('fileStatus').innerHTML = '<span>❌</span><div>Ошибка соединения с сервером</div>';
+                document.getElementById('fileStatus').className = 'file-status visible warning';
+            } finally {
+                state.isProcessing = false;
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function showEtlStats({ rows_processed, rows_created, rows_updated, rows_deactivated }) {
+            const fileStatus = document.getElementById('fileStatus');
+
+            const summaryText = `✅ Данные успешно обновлены! Обработано строк: ${rows_processed}`;
+
+            const statsHTML = `
+                <div class="etl-stats-grid">
+                    <div class="etl-stat-card processed">
+                        <div class="etl-stat-icon">📊</div>
+                        <div class="etl-stat-value">${rows_processed}</div>
+                        <div class="etl-stat-label">Обработано</div>
+                    </div>
+                    <div class="etl-stat-card created">
+                        <div class="etl-stat-icon">✨</div>
+                        <div class="etl-stat-value">${rows_created}</div>
+                        <div class="etl-stat-label">Создано</div>
+                    </div>
+                    <div class="etl-stat-card updated">
+                        <div class="etl-stat-icon">🔄</div>
+                        <div class="etl-stat-value">${rows_updated}</div>
+                        <div class="etl-stat-label">Обновлено</div>
+                    </div>
+                    <div class="etl-stat-card deactivated">
+                        <div class="etl-stat-icon">🗑️</div>
+                        <div class="etl-stat-value">${rows_deactivated}</div>
+                        <div class="etl-stat-label">Дезактивировано</div>
+                    </div>
+                </div>
+            `;
+
+            fileStatus.className = 'file-status visible success';
+            fileStatus.style.flexDirection = 'column';
+            fileStatus.style.alignItems = 'stretch';
+            fileStatus.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <span style="font-size: 1.2rem;">✅</span>
+                    <div style="flex: 1;">${summaryText}</div>
+                </div>
+                ${statsHTML}
+            `;
+        }
+
+        // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ: универсальный парсинг ответа Staging
+        async function uploadStaging(file) {
+            if (!file) {
+                showError('Файл не выбран');
+                return null;
+            }
+
+            showSpinner('Загрузка файла...');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('uploaded_by', 'accounting_user');
+
+                const response = await fetch('http://127.0.0.1:8000/webhook/upload-staging', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const rawData = await response.json();
+
+                // ✅ ЛОГИРОВАНИЕ: что пришло от Staging
+                console.log('🔍 Staging raw response:', rawData);
+
+                hideSpinner();
+
+                if (!response.ok) {
+                    if (response.status === 409) {
+                        showError('Этот файл уже загружен ранее');
+                    } else if (response.status === 400) {
+                        showError(rawData.message || 'Неверный формат файла');
+                    } else {
+                        showError(rawData.message || 'Ошибка загрузки файла');
+                    }
+                    return null;
+                }
+
+                // ✅ УНИВЕРСАЛЬНЫЙ ПАРСИНГ: поддерживаем оба формата
+                // Формат 1: { fileName, fileHash, fileSize }
+                // Формат 2: { status: 'success', data: { fileName, fileHash, fileSize } }
+                let fileName = null;
+                let fileHash = null;
+                let fileSize = null;
+
+                if (rawData.data && typeof rawData.data === 'object') {
+                    // Формат 2: данные в rawData.data
+                    fileName = rawData.data.fileName || rawData.data.filename || null;
+                    fileHash = rawData.data.fileHash || rawData.data.file_hash || null;
+                    fileSize = rawData.data.fileSize || rawData.data.file_size || null;
+                    console.log('📦 Используем формат: rawData.data');
+                } else {
+                    // Формат 1: данные в корне rawData
+                    fileName = rawData.fileName || rawData.filename || null;
+                    fileHash = rawData.fileHash || rawData.file_hash || null;
+                    fileSize = rawData.fileSize || rawData.file_size || null;
+                    console.log('📦 Используем формат: rawData (корень)');
+                }
+
+                // ✅ ПРОВЕРКА: все ли поля на месте
+                if (!fileName || !fileHash) {
+                    console.error('❌ Staging вернул неполные данные:', { fileName, fileHash, fileSize });
+                    showError('Ошибка: сервер не вернул fileName или fileHash. Проверьте консоль.');
+                    return null;
+                }
+
+                // ✅ СОХРАНЕНИЕ в глобальный объект
+                window.stagedFile = {
+                    fileName: fileName,
+                    fileHash: fileHash,
+                    fileSize: fileSize
+                };
+
+                console.log('✅ window.stagedFile сохранён:', window.stagedFile);
+
+                showSuccess('Файл загружен: ' + file.name);
+                return rawData;
+
+            } catch (error) {
+                hideSpinner();
+                console.error('Upload error:', error);
+                showError('Ошибка соединения с сервером');
+                return null;
+            }
+        }
+
+        // ✅ ИСПРАВЛЕННАЯ ФУНКЦИЯ: с логированием payload
+        async function processOSV() {
+            if (!window.stagedFile) {
+                showError('Сначала выберите файл');
+                return null;
+            }
+
+            if (!window.stagedFile.fileHash) {
+                showError('Ошибка: fileHash отсутствует. Выберите файл заново.');
+                console.error('❌ window.stagedFile:', window.stagedFile);
+                return null;
+            }
+
+            try {
+                // ✅ ФОРМИРУЕМ payload и логируем
+                const payload = {
+                    fileHash: window.stagedFile.fileHash,
+                    fileName: window.stagedFile.fileName,
+                    uploaded_by: 'accounting_user'
+                };
+
+                console.log('🔍 Upload payload (что отправляем):', payload);
+                console.log('🔍 window.stagedFile (источник):', window.stagedFile);
+
+                const response = await fetch('http://127.0.0.1:8000/webhook/process-osv', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                // ✅ ЛОГИРОВАНИЕ: что пришло от Upload
+                console.log('🔍 Upload raw response:', data);
+
+                if (!response.ok) {
+                    if (response.status === 423) {
+                        showError('Файл уже обрабатывается. Подождите.');
+                    } else {
+                        showError(data.message || 'Ошибка обработки файла');
+                    }
+                    return null;
+                }
+
+                return data;
+
+            } catch (error) {
+                console.error('Process error:', error);
+                showError('Ошибка соединения с сервером');
+                return null;
+            }
+        }
+
+        function showSpinner(message = 'Загрузка...') {
+            const fileStatus = document.getElementById('fileStatus');
+            if (!fileStatus) return;
+            fileStatus.innerHTML = `<span>⏳</span><div>${message}</div>`;
+            fileStatus.className = 'file-status visible success';
+            fileStatus.style.flexDirection = '';
+        }
+
+        function hideSpinner() {}
+
+        function showError(message) {
+            const fileStatus = document.getElementById('fileStatus');
+            if (!fileStatus) return;
+            fileStatus.innerHTML = `<span>❌</span><div>${message}</div>`;
+            fileStatus.className = 'file-status visible warning';
+            fileStatus.style.flexDirection = '';
+        }
+
+        function showSuccess(message) {
+            const fileStatus = document.getElementById('fileStatus');
+            if (!fileStatus) return;
+            fileStatus.innerHTML = `<span>✅</span><div>${message}</div>`;
+            fileStatus.className = 'file-status visible success';
+            fileStatus.style.flexDirection = '';
+        }
+
+        async function fetchReport() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Формирование...';
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/webhook/report-osv', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        format: 'all',
+                        user_role: state.role
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка получения отчета');
+                }
+
+                const result = await response.json();
+
+                if (result.status !== 'success') {
+                    throw new Error(result.message || 'Ошибка формирования отчета');
+                }
+
+                state.reportData = result.data;
+                renderReportTabs(result.data);
+
+                if (result.data.dashboard) {
+                    renderDashboard(result.data.dashboard);
+                }
+
+            } catch (error) {
+                console.error('Fetch report error:', error);
+                alert('Ошибка: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function renderReportTabs(data) {
+            const tabsContainer = document.querySelector('.tabs-container');
+            if (!tabsContainer) return;
+
+            tabsContainer.classList.add('active');
+
+            if (data.records && data.records.length > 0) {
+                renderTable(data.records);
+            } else {
+                document.getElementById('tableContainer').innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Нет данных для отображения</div>';
+            }
+        }
+
+        function renderTable(records) {
+            const isProcurement = state.role === 'procurement' || state.role === 'manager';
+
+            const tableHTML = `
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Менеджер</th>
+                                <th>Контрагент</th>
+                                <th>Документ</th>
+                                <th>Дата оплаты</th>
+                                <th>Сумма</th>
+                                <th>Срок поставки</th>
+                                <th>Просрочка</th>
+                                <th>Статус</th>
+                                ${isProcurement ? '<th>Действия</th>' : ''}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${records.map(record => `
+                                <tr>
+                                    <td>${record.manager || 'Не назначен'}${record.manager_adjusted ? '<span class="adjustment-indicator" title="Менеджер изменен">✏️</span>' : ''}</td>
+                                    <td>${record.contractor || '-'}</td>
+                                    <td>${record.document || '-'}</td>
+                                    <td>${formatDate(record.payment_date)}</td>
+                                    <td>${formatCurrency(record.amount_open)}</td>
+                                    <td>${record.delivery_term_days || 0} дн.${record.delivery_adjusted ? '<span class="adjustment-indicator" title="Срок изменен">✏️</span>' : ''}</td>
+                                    <td>${record.overdue_days || 0} дн.</td>
+                                    <td>${renderStatusBadge(record.status_group)}</td>
+                                    ${isProcurement ? `
+                                        <td>
+                                            <button class="btn btn-icon" onclick="openManagerModal('${record.unique_key}', '${record.contractor}', '${record.document}')" title="Изменить менеджера">✏️ Менеджер</button>
+                                            <button class="btn btn-icon" onclick="openDeliveryModal('${record.unique_key}', '${record.contractor}', '${record.document}', ${record.delivery_term_days || 0})" title="Изменить срок" style="margin-top: 0.3rem;">📅 Срок</button>
+                                        </td>
+                                    ` : ''}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('tableContainer').innerHTML = tableHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU');
+        }
+
+        function formatCurrency(amount) {
+            if (!amount) return '0 ₽';
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+
+        function renderStatusBadge(status) {
+            const statusMap = {
+                'Ок': 'status-ok',
+                'В работе': 'status-work',
+                'Внимание': 'status-attention',
+                'Разобраться': 'status-resolve',
+                'Тревога': 'status-alarm'
+            };
+
+            const className = statusMap[status] || 'status-ok';
+            return `<span class="status-badge ${className}">${status || 'Ок'}</span>`;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'dashboard' && state.reportData?.dashboard) {
+                renderDashboard(state.reportData.dashboard);
+            }
+            
+            // ✅ Если переключились на вкладку ошибок - обновляем данные
+            if (tabName === 'errors') {
+                fetchErrorLog();
+            }
+        }
+
+        function downloadExcel() {
+            if (!state.reportData || !state.reportData.excel) {
+                alert('Excel файл недоступен');
+                return;
+            }
+
+            const { fileData, fileName } = state.reportData.excel;
+
+            try {
+                const byteCharacters = atob(fileData);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                URL.revokeObjectURL(url);
+
+            } catch (error) {
+                alert('Ошибка скачивания файла: ' + error.message);
+            }
+        }
+
+        function renderDashboard(dashboardData) {
+            if (!dashboardData) {
+                console.error('Нет данных для дашборда');
+                return;
+            }
+
+            const kpiAmount = document.getElementById('kpi-total-amount');
+            const kpiCount = document.getElementById('kpi-total-count');
+            const kpiOverdue = document.getElementById('kpi-avg-overdue');
+            const statusCanvas = document.getElementById('statusChart');
+            const managerCanvas = document.getElementById('managerChart');
+
+            if (!kpiAmount || !kpiCount || !kpiOverdue || !statusCanvas || !managerCanvas) {
+                console.log('Элементы дашборда не найдены в DOM');
+                return;
+            }
+
+            kpiAmount.textContent = formatCurrency(dashboardData.total_amount);
+            kpiCount.textContent = dashboardData.total_count;
+            kpiOverdue.textContent = dashboardData.avg_overdue_days + ' дн.';
+
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusLabels = Object.keys(dashboardData.by_status);
+            const statusData = statusLabels.map(s => dashboardData.by_status[s].amount);
+            const statusColors = ['#4ade80', '#38bdf8', '#f0af42', '#f97316', '#ef4444'];
+
+            if (window.statusChartInstance) {
+                window.statusChartInstance.destroy();
+            }
+
+            window.statusChartInstance = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: statusColors,
+                        borderWidth: 2,
+                        borderColor: 'rgba(8, 18, 14, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#ffffff',
+                                font: { family: 'Montserrat', size: 12 },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${formatCurrency(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const managerCtx = document.getElementById('managerChart').getContext('2d');
+            const managerLabels = Object.keys(dashboardData.by_manager);
+            const managerData = managerLabels.map(m => dashboardData.by_manager[m].amount);
+
+            if (window.managerChartInstance) {
+                window.managerChartInstance.destroy();
+            }
+
+            window.managerChartInstance = new Chart(managerCtx, {
+                type: 'bar',
+                data: {
+                    labels: managerLabels,
+                    datasets: [{
+                        label: 'Сумма авансов',
+                        data: managerData,
+                        backgroundColor: '#38bdf8',
+                        borderColor: '#38bdf8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#ffffff',
+                                callback: function(value) { return formatCurrency(value); }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#ffffff' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function openManagerModal(uniqueKey, contractor, document) {
+            state.currentAdjustmentRow = { uniqueKey, type: 'manager' };
+            document.getElementById('modalContractor').value = contractor;
+            document.getElementById('modalDocument').value = document;
+            document.getElementById('modalManagerName').value = '';
+            document.getElementById('modalManagerReason').value = '';
+            document.getElementById('modalManager').classList.add('active');
+        }
+
+        function openDeliveryModal(uniqueKey, contractor, document, currentTerm) {
+            state.currentAdjustmentRow = { uniqueKey, type: 'delivery' };
+            document.getElementById('modalDeliveryContractor').value = contractor;
+            document.getElementById('modalDeliveryDocument').value = document;
+            document.getElementById('modalCurrentTerm').value = currentTerm;
+            document.getElementById('modalNewTerm').value = '';
+            document.getElementById('modalDeliveryReason').value = '';
+            document.getElementById('modalDelivery').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            state.currentAdjustmentRow = null;
+        }
+
+        async function saveManagerAdjustment() {
+            const managerName = document.getElementById('modalManagerName').value.trim();
+            const reason = document.getElementById('modalManagerReason').value.trim();
+
+            if (!managerName) {
+                alert('Введите имя менеджера');
+                return;
+            }
+
+            if (!state.currentAdjustmentRow) {
+                alert('Ошибка: нет данных для сохранения');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/webhook/adjustment-manager', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        unique_key: state.currentAdjustmentRow.uniqueKey,
+                        manager_name: managerName,
+                        reason: reason,
+                        changed_by: 'procurement_user'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    closeModal('modalManager');
+                    alert('Менеджер успешно изменен');
+                    if (state.report) {
+                        fetchReport();
+                    }
+                } else {
+                    alert('Ошибка сохранения: ' + (result.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                console.error('Save manager error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        async function saveDeliveryAdjustment() {
+            const newTerm = parseInt(document.getElementById('modalNewTerm').value);
+            const reason = document.getElementById('modalDeliveryReason').value.trim();
+
+            if (!newTerm || newTerm < 1) {
+                alert('Введите корректный срок поставки');
+                return;
+            }
+
+            if (!state.currentAdjustmentRow) {
+                alert('Ошибка: нет данных для сохранения');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/webhook/adjustment-delivery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        unique_key: state.currentAdjustmentRow.uniqueKey,
+                        custom_term_days: newTerm,
+                        reason: reason,
+                        changed_by: 'procurement_user'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    closeModal('modalDelivery');
+                    alert('Срок поставки успешно изменен');
+                    if (state.report) {
+                        fetchReport();
+                    }
+                } else {
+                    alert('Ошибка сохранения: ' + (result.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                console.error('Save delivery error:', error);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        function updateReportZone() {
+            let statusBlockHTML = '';
+
+            if (!state.lastUploadTime) {
+                statusBlockHTML = `
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid var(--text-secondary);">
+                        <div style="font-weight: 600; color: var(--text-secondary);">📭 Данные ещё не загружались</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">Загрузите файл ОСВ 60.02 для начала работы</div>
+                    </div>
+                `;
+            } else {
+                const isFresh = (Date.now() - state.lastUploadTime) < 24 * 3600 * 1000;
+                const dateStr = new Date(state.lastUploadTime).toLocaleString('ru-RU');
+                const color = isFresh ? 'var(--accent-green)' : 'var(--warning-orange)';
+                const text = isFresh ? 'Данные актуальны' : 'Данные устарели (>24ч)';
+
+                let statsLine = '';
+                if (state.lastEtlStats && state.lastEtlStats.rows_processed) {
+                    statsLine = `
+                        <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; font-size: 0.8rem;">
+                            <span style="color: var(--accent-blue);">📊 Обработано: <strong>${state.lastEtlStats.rows_processed}</strong></span>
+                        </div>
+                    `;
+                }
+
+                statusBlockHTML = `
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid ${color};">
+                        <div style="font-weight: 600; color: ${color}; margin-bottom: 0.25rem;">${text}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Последняя загрузка: ${dateStr}</div>
+                        ${statsLine}
+                    </div>
+                `;
+            }
+
+            // ✅ Определяем, показывать ли вкладку ошибок (только для admin)
+            const showErrorTab = state.role === 'admin';
+
+            const reportHTML = `
+                <div class="report-placeholder">
+                    <h3 class="report-placeholder-title">Зона отчетности</h3>
+                    ${statusBlockHTML}
+                    <button class="btn btn-primary" style="max-width: 300px;" onclick="fetchReport()">📊 Сформировать отчет</button>
+
+                    <div class="tabs-container">
+                        <div class="tabs-header">
+                            <button class="tab-button active" onclick="switchTab('dashboard')">📊 Дашборд</button>
+                            <button class="tab-button" onclick="switchTab('nocodb')">📋 NocoDB</button>
+                            <button class="tab-button" onclick="switchTab('excel')">📥 Excel</button>
+                            ${showErrorTab ? '<button class="tab-button" onclick="switchTab(\'errors\')">🔴 Журнал ошибок</button>' : ''}
+                        </div>
+
+                        <div class="tab-content active" id="tab-dashboard">
+                            <div class="dashboard-container">
+                                <div class="kpi-grid">
+                                    <div class="kpi-card">
+                                        <div class="kpi-icon">💰</div>
+                                        <div class="kpi-value" id="kpi-total-amount">0 ₽</div>
+                                        <div class="kpi-label">Общая сумма авансов</div>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <div class="kpi-icon">📄</div>
+                                        <div class="kpi-value" id="kpi-total-count">0</div>
+                                        <div class="kpi-label">Количество документов</div>
+                                    </div>
+                                    <div class="kpi-card">
+                                        <div class="kpi-icon">⏱️</div>
+                                        <div class="kpi-value" id="kpi-avg-overdue">0 дн.</div>
+                                        <div class="kpi-label">Средняя просрочка</div>
+                                    </div>
+                                </div>
+
+                                <div class="charts-grid">
+                                    <div class="chart-card">
+                                        <h3 class="chart-title">Распределение по статусам</h3>
+                                        <canvas id="statusChart"></canvas>
+                                    </div>
+                                    <div class="chart-card">
+                                        <h3 class="chart-title">Суммы по менеджерам</h3>
+                                        <canvas id="managerChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="tab-nocodb">
+                            <div id="tableContainer"></div>
+                        </div>
+
+                        <div class="tab-content" id="tab-excel">
+                            <button class="download-button" onclick="downloadExcel()">
+                                📥 Скачать Excel отчёт
+                            </button>
+                            <p style="color: var(--text-secondary); margin-top: 1rem;">Excel файл готов для скачивания. Нажмите кнопку выше.</p>
+                        </div>
+
+                        ${showErrorTab ? `
+                            <div class="tab-content" id="tab-errors">
+                                <div id="errorLogContent"></div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            const zones = document.querySelectorAll('.report-zone-compact .report-content');
+            zones.forEach(zone => {
+                zone.innerHTML = reportHTML;
+            });
+        }
+
+        function renderWorkspace() {
+            const workspace = document.getElementById('workspace');
+
+            if (!state.report) {
+                workspace.innerHTML = '<div style="text-align: center; padding: 3rem;"><h2>Добро пожаловать</h2><p style="color: var(--text-secondary); margin-top: 1rem;">Выберите отчёт для начала работы</p></div>';
+                return;
+            }
+
+            // ✅ REO: отдельный workspace (дашборд + Excel), не 6002
+            if (state.report === 'reo') {
+                workspace.innerHTML = reoWorkspaceHTML();
+                initReoWorkspace();
+                return;
+            }
+
+            const reportLabel = reports.find(r => r.value === state.report)?.label || state.report;
+            const expectedDate = formatDateRU(getExpectedReportDate());
+
+            let statusBlockHTML = '';
+
+            if (!state.lastUploadTime) {
+                statusBlockHTML = `
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid var(--text-secondary);">
+                        <div style="font-weight: 600; color: var(--text-secondary);">📭 Данные ещё не загружались</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">Загрузите файл ОСВ 60.02 для начала работы</div>
+                    </div>
+                `;
+            } else {
+                const isFresh = (Date.now() - state.lastUploadTime) < 24 * 3600 * 1000;
+                const dateStr = new Date(state.lastUploadTime).toLocaleString('ru-RU');
+                const color = isFresh ? 'var(--accent-green)' : 'var(--warning-orange)';
+                const text = isFresh ? 'Данные актуальны' : 'Данные устарели (>24ч)';
+
+                let statsLine = '';
+                if (state.lastEtlStats && state.lastEtlStats.rows_processed) {
+                    statsLine = `
+                        <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; font-size: 0.8rem;">
+                            <span style="color: var(--accent-blue);">📊 Обработано: <strong>${state.lastEtlStats.rows_processed}</strong></span>
+                        </div>
+                    `;
+                }
+
+                statusBlockHTML = `
+                    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid ${color};">
+                        <div style="font-weight: 600; color: ${color}; margin-bottom: 0.25rem;">${text}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Последняя загрузка: ${dateStr}</div>
+                        ${statsLine}
+                    </div>
+                `;
+            }
+
+            const reportZoneHTML = `
+                <div class="report-zone-compact">
+                    <div class="report-content">
+                        <div class="report-placeholder">
+                            <h3 class="report-placeholder-title">Зона отчетности</h3>
+                            ${statusBlockHTML}
+                            <button class="btn btn-primary" style="max-width: 300px;" onclick="fetchReport()">📊 Сформировать отчет</button>
+
+                            <div class="tabs-container">
+                                <div class="tabs-header">
+                                    <button class="tab-button active" onclick="switchTab('dashboard')">📊 Дашборд</button>
+                                    <button class="tab-button" onclick="switchTab('nocodb')">📋 NocoDB</button>
+                                    <button class="tab-button" onclick="switchTab('excel')">📥 Excel</button>
+                                    ${state.role === 'admin' ? '<button class="tab-button" onclick="switchTab(\'errors\')">🔴 Журнал ошибок</button>' : ''}
+                                </div>
+
+                                <div class="tab-content active" id="tab-dashboard">
+                                    <div class="dashboard-container">
+                                        <div class="kpi-grid">
+                                            <div class="kpi-card">
+                                                <div class="kpi-icon">💰</div>
+                                                <div class="kpi-value" id="kpi-total-amount">0 ₽</div>
+                                                <div class="kpi-label">Общая сумма авансов</div>
+                                            </div>
+                                            <div class="kpi-card">
+                                                <div class="kpi-icon">📄</div>
+                                                <div class="kpi-value" id="kpi-total-count">0</div>
+                                                <div class="kpi-label">Количество документов</div>
+                                            </div>
+                                            <div class="kpi-card">
+                                                <div class="kpi-icon">⏱️</div>
+                                                <div class="kpi-value" id="kpi-avg-overdue">0 дн.</div>
+                                                <div class="kpi-label">Средняя просрочка</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="charts-grid">
+                                            <div class="chart-card">
+                                                <h3 class="chart-title">Распределение по статусам</h3>
+                                                <canvas id="statusChart"></canvas>
+                                            </div>
+                                            <div class="chart-card">
+                                                <h3 class="chart-title">Суммы по менеджерам</h3>
+                                                <canvas id="managerChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tab-content" id="tab-nocodb">
+                                    <div id="tableContainer"></div>
+                                </div>
+
+                                <div class="tab-content" id="tab-excel">
+                                    <button class="download-button" onclick="downloadExcel()">
+                                        📥 Скачать Excel отчёт
+                                    </button>
+                                    <p style="color: var(--text-secondary); margin-top: 1rem;">Excel файл готов для скачивания. Нажмите кнопку выше.</p>
+                                </div>
+
+                                ${state.role === 'admin' ? `
+                                    <div class="tab-content" id="tab-errors">
+                                        <div id="errorLogContent"></div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (state.role === 'accounting') {
+                workspace.innerHTML = `
+                    <div class="workspace-accounting">
+                        <div class="upload-zone">
+                            <h2 class="card-title">📤 Загрузка ОСВ 60.02</h2>
+                            <p class="card-subtitle">${reportLabel} • Режим: ${state.role}</p>
+
+                            <div class="upload-zone-grid">
+                                <div class="upload-info">
+                                    <div class="upload-info-title">📋 Правила формирования ОСВ 60.02:</div>
+                                    <div class="upload-info-text">
+                                        <strong>1. Период и дата:</strong><br>
+                                        • Период: 1 день<br>
+                                        • Дата: вчерашний день<br><br>
+
+                                        <strong>2. Обязательные субконто (в порядке):</strong><br>
+                                        • Счет<br>
+                                        • Документы расчетов с контрагентом.ЦФО<br>
+                                        • Документы расчетов с контрагентом.Физ.лицо<br>
+                                        • Контрагенты<br>
+                                        • Контрагенты.ИНН<br>
+                                        • Договоры<br>
+                                        • Документы расчетов с контрагентом<br>
+                                        • Документы расчетов с контрагентом.Срок поставки<br><br>
+
+                                        <strong>3. Формат и имя файла:</strong><br>
+                                        • Формат: <strong>Excel (.xlsx)</strong><br>
+                                        • Имя: <strong>input_osv6002_ДД.ММ.ГГГГ.xlsx</strong><br>
+                                        • Пример: <strong>input_osv6002_${expectedDate}.xlsx</strong><br>
+                                        • <strong>Без кириллицы</strong> в имени файла<br>
+                                        • Обязательно наличие даты в формате <strong>ДД.ММ.ГГГГ</strong><br><br>
+
+                                        <strong>4. Пример настроек в 1С:</strong><br>
+                                        <em style="font-size: 0.75rem; color: var(--text-secondary);">См. скриншот справа →</em>
+                                    </div>
+                                </div>
+
+                                <div class="screenshot-container">
+                                    <img src="1c_settings.png" alt="Настройки 1С для формирования ОСВ 60.02">
+                                </div>
+                            </div>
+
+                            <div class="date-hint">📅 Ожидаемая дата: <strong>${expectedDate}</strong></div>
+
+                            <div class="upload-controls">
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)">
+                                    <div class="file-input-button"><span>📁</span><span>Выбрать файл</span></div>
+                                </div>
+                                <button id="btnUpdate" class="btn btn-primary" onclick="handleUpdate()" disabled>
+                                    🔄 Обновить данные в системе
+                                </button>
+                            </div>
+
+                            <div id="fileStatus" class="file-status"></div>
+                        </div>
+
+                        ${reportZoneHTML}
+                    </div>
+                `;
+            } else if (state.role === 'procurement' || state.role === 'manager') {
+                workspace.innerHTML = `
+                    <div class="workspace-procurement">
+                        ${reportZoneHTML}
+                    </div>
+                `;
+            } else if (state.role === 'admin') {
+                workspace.innerHTML = `
+                    <div class="workspace-admin">
+                        ${reportZoneHTML}
+                    </div>
+                `;
+                // ✅ Автоматически загружаем журнал ошибок для admin
+                fetchErrorLog();
+            } else {
+                workspace.innerHTML = `
+                    <div class="workspace-single">
+                        ${reportZoneHTML}
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedReport = localStorage.getItem('selectedReport');
+            const savedRole = localStorage.getItem('selectedRole');
+
+            if (savedReport) {
+                document.getElementById('reportSelect').value = savedReport;
+                state.report = savedReport;
+            }
+
+            if (savedRole) {
+                document.getElementById('roleSelect').value = savedRole;
+                state.role = savedRole;
+            }
+
+            // ✅ АВТОРИЗАЦИЯ: сначала проверяем токен, потом рендерим workspace
+            initAuth();
+        });
+    </script>
+</body>
+</html>

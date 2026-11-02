@@ -1,0 +1,74 @@
+[
+ {
+  "object_name": "ЖК Сосновый (дог 101)",
+  "contract_no": "дог.№101",
+  "site": "Сосновый",
+  "ng_keyword": "корпус1",
+  "contract_cost": 2865027.11,
+  "advance_limit": 0.7,
+  "completed": false
+ },
+ {
+  "object_name": "ЖК Сосновый, корпус 2 (дог 101)",
+  "contract_no": "дог.№101",
+  "site": "Сосновый",
+  "ng_keyword": "корпус2",
+  "contract_cost": 1217654.58,
+  "advance_limit": 0.5,
+  "completed": true
+ },
+ {
+  "object_name": "Административный центр (дог 102)",
+  "contract_no": "дог.№102",
+  "site": "Центральный",
+  "ng_keyword": "админ",
+  "contract_cost": 1473363.9,
+  "advance_limit": 0.7,
+  "completed": false
+ },
+ {
+  "object_name": "Пристрой к школе (дог 102)",
+  "contract_no": "дог.№102",
+  "site": "Центральный",
+  "ng_keyword": "школа",
+  "contract_cost": 568517.2,
+  "advance_limit": 0.5,
+  "completed": false
+ },
+ {
+  "object_name": "Спорткомплекс (дог 103)",
+  "contract_no": "дог.№103",
+  "site": "Северный",
+  "ng_keyword": "спорт",
+  "contract_cost": 1327967.29,
+  "advance_limit": 0.7,
+  "completed": false
+ },
+ {
+  "object_name": "Плавательный бассейн (дог 103)",
+  "contract_no": "дог.№103",
+  "site": "Северный",
+  "ng_keyword": "бассейн",
+  "contract_cost": 610745.71,
+  "advance_limit": 0.5,
+  "completed": false
+ },
+ {
+  "object_name": "Инженерная сеть (дог 104)",
+  "contract_no": "дог.№104",
+  "site": "Северный",
+  "ng_keyword": "сеть",
+  "contract_cost": 581180.01,
+  "advance_limit": 0.7,
+  "completed": false
+ },
+ {
+  "object_name": "Котельная (дог 104)",
+  "contract_no": "дог.№104",
+  "site": "Северный",
+  "ng_keyword": "котельная",
+  "contract_cost": 411758.38,
+  "advance_limit": 0.5,
+  "completed": false
+ }
+]
