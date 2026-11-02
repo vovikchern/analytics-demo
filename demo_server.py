@@ -280,7 +280,16 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    import threading
+    import webbrowser
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
-    print(f"Demo server: http://127.0.0.1:{port}  (Ctrl+C — выход)")
+    url = f"http://127.0.0.1:{port}"
+    print(f"Demo server: {url}  (Ctrl+C — выход)")
     print("Логины: admin@demo.ru / buh@demo.ru / manager@demo.ru, пароль Demo1234!")
-    ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
+    if "--no-browser" not in sys.argv:
+        # открыть браузер после подъёма сервера (запуск двойным кликом)
+        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+    try:
+        ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
+    except KeyboardInterrupt:
+        print("\nСервер остановлен")

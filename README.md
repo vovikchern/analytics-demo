@@ -11,6 +11,11 @@
 
 ## Быстрый старт
 
+**Windows:** двойной клик по `start_demo.bat` — сам найдёт Python, при первом
+запуске поставит openpyxl, поднимет сервер и откроет браузер.
+
+**Вручную (Windows/Linux/Mac):**
+
 ```bash
 pip install openpyxl
 python demo_server.py
