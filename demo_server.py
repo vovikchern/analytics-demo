@@ -103,21 +103,31 @@ def make_excel(actual_date):
     ws = wb.worksheets[0]
     ws["B1"] = datetime.strptime(actual_date, "%Y-%m-%d").date()
     ws["B1"].number_format = "DD.MM.YYYY"
+
+    # бухгалтерский формат шаблона; ячейки, пустые в шаблоне (например L5/N5),
+    # стиля не имеют — иначе число отображается как General (1417714,5)
+    ACC_FMT = '_-* #,##0.00_-;\\-* #,##0.00_-;_-* "-"??_-;_-@_-'
+
+    def put(row, col, value):
+        c = ws.cell(row=row, column=col)
+        c.value = value
+        if isinstance(value, (int, float)) and c.number_format in (None, "General"):
+            c.number_format = ACC_FMT
+
     for obj, periods in gen_excel.SECTIONS.items():
         t = TERMS.get(obj) or {}
         for tpl_period, row in periods.items():
             label = gen_excel.LABELS.get(tpl_period, tpl_period)
             ws.cell(row=row, column=4).value = int(label) if label.isdigit() else label
             for field, col in gen_excel.VALUE_COLS.items():
-                ws.cell(row=row, column=col).value = round(db_value(obj, tpl_period, field), 2)
+                put(row, col, round(db_value(obj, tpl_period, field), 2))
         ws.cell(row=gen_excel.I_ROW_OF[obj], column=4).value = "итого"
         if t:
-            ws.cell(row=gen_excel.B_ROWS[obj], column=2).value = round(t["contract_cost"], 2)
+            put(gen_excel.B_ROWS[obj], 2, round(t["contract_cost"], 2))
             ws.cell(row=gen_excel.I_ROW_OF[obj], column=9).value = t["advance_limit"]
         contract_no = t.get("contract_no")
         if obj in gen_excel.C_TOP and contract_no:
-            ws.cell(row=gen_excel.C_TOP[obj], column=3).value = round(
-                bg_by_contract.get(contract_no, 0.0), 2)
+            put(gen_excel.C_TOP[obj], 3, round(bg_by_contract.get(contract_no, 0.0), 2))
     for r, obj in gen_excel.CONTRACT_I_ROWS.items():
         t = TERMS.get(obj) or {}
         if t:
@@ -282,7 +292,8 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     import threading
     import webbrowser
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    port = int(args[0]) if args else 8000
     url = f"http://127.0.0.1:{port}"
     print(f"Demo server: {url}  (Ctrl+C — выход)")
     print("Логины: admin@demo.ru / buh@demo.ru / manager@demo.ru, пароль Demo1234!")
