@@ -16,7 +16,7 @@ transform_reo_v1.0.py — ETL: выгрузка reo_statement (JSON из 1С) ->
 Конфигурация NocoDB (переменные окружения контейнера python_worker, docker-compose):
   NOCODB_URL   — напр. http://nocodb:8080 (внутри automation_net)
   NOCODB_TOKEN — API-токен NocoDB (xc-token)
-  NOCODB_BASE  — название базы (по умолчанию "Analytics-Portal")
+  NOCODB_BASE  — название базы (по умолчанию "Demo-Portal")
 
 Логика (порт проверенного scripts/_fill_template.py, этап 0):
   - сопоставление: НГ содержит contract_no И keyword (регистронезависимо,
@@ -445,7 +445,7 @@ def main():
 
     nc = Noco(os.environ.get("NOCODB_URL", ""),
               os.environ.get("NOCODB_TOKEN", ""),
-              os.environ.get("NOCODB_BASE", "Analytics-Portal"))
+              os.environ.get("NOCODB_BASE", "Demo-Portal"))
     if not nc.base_url or not nc.token:
         raise SystemExit("ERROR: env NOCODB_URL / NOCODB_TOKEN not set")
 

@@ -3,10 +3,10 @@
 # Использование:
 #   reo_etl.sh            — плановый запуск (trigger_source=scheduled, для cron)
 #   reo_etl.sh manual     — ручной запуск между сессиями (trigger_source=manual)
-# Cron (пн 07:00): 0 7 * * 1 /home/demo/analytics-portal/data/scripts/reo_etl.sh >> /home/demo/analytics-portal/data/reo_etl.log 2>&1
+# Cron (пн 07:00): 0 7 * * 1 /home/demo/demo-portal/data/scripts/reo_etl.sh >> /home/demo/demo-portal/data/reo_etl.log 2>&1
 # Креды 1С и NocoDB — в environment контейнера python_worker (docker-compose).
 set -e
-cd /home/demo/analytics-portal
+cd /home/demo/demo-portal
 
 SOURCE="${1:-scheduled}"
 case "$SOURCE" in

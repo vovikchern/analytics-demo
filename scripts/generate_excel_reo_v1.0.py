@@ -175,7 +175,7 @@ def main():
 
     nc = Noco(os.environ.get("NOCODB_URL", ""),
               os.environ.get("NOCODB_TOKEN", ""),
-              os.environ.get("NOCODB_BASE", "Analytics-Portal"))
+              os.environ.get("NOCODB_BASE", "Demo-Portal"))
     if not nc.base_url or not nc.token:
         raise SystemExit("ERROR: env NOCODB_URL / NOCODB_TOKEN not set")
     nc.connect()

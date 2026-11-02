@@ -35,7 +35,7 @@ from datetime import datetime, timedelta, timezone
 
 USERS_TABLE = os.environ.get("PORTAL_USERS_TABLE", "portal_users")
 SESSIONS_TABLE = os.environ.get("PORTAL_SESSIONS_TABLE", "portal_sessions")
-BASE_TITLE = os.environ.get("NOCODB_BASE", "Analytics-Portal")
+BASE_TITLE = os.environ.get("NOCODB_BASE", "Demo-Portal")
 SESSION_TTL_HOURS = 8           # скользящий TTL сессии (решение 2026-11-02, п.8)
 MIN_PASSWORD_LEN = 6
 
