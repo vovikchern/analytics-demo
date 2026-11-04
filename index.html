@@ -563,6 +563,31 @@
         }
         .btn-cal:hover { background: rgba(255, 255, 255, 0.18); }
 
+        /* === адаптация под узкие десктопы/ноутбуки (2026-11-04, скриншоты
+           6-10.jpg: Dell Inspiron 14, эффективная ширина ~1150-1366px) ===
+           Схема шапки (договорённость 2026-11-04) применяется ТОЛЬКО
+           при ширине <= 1600px: логотип в первой строке СЛЕВА; селектор
+           отчёта и все функциональные элементы (SANDBOX, кнопки, профиль)
+           — на второй строке, по центру. На широких экранах — прежний
+           вид в один ряд (селектор у логотипа, функции у правого края). */
+        .header { flex-wrap: wrap; height: auto; min-height: 70px; row-gap: 0.4rem; padding: 0.5rem 1.2rem; }
+        .header-left { min-width: 0; }
+        .header-right { flex: 1 1 auto; margin-left: 2rem; justify-content: flex-start; }
+        .header-right .report-selector { margin-right: auto; }
+
+        @media (max-width: 1400px) {
+            .header-right { flex: 1 1 100%; margin-left: 0; flex-wrap: wrap; justify-content: center; align-items: center; row-gap: 0.4rem; gap: 0.4rem; }
+            .header-right .report-selector { flex: 0 1 260px; min-width: 200px; margin-right: 0; }
+            .header-right .admin-sandbox { padding: 0.25rem 0.5rem; gap: 0.3rem; }
+            .header-right .btn-header { padding: 0.3rem 0.45rem; font-size: 0.75rem; }
+            .header-right .user-profile { gap: 0.3rem; font-size: 0.75rem; }
+            .header-right .user-avatar { width: 28px; height: 28px; }
+            .reo-kpi-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); justify-content: center; }
+            .reo-kpi-grid .kpi-card { width: 100%; max-width: 220px; padding: 1.1rem 0.6rem; }
+            .kpi-value { font-size: 1.6rem; }
+            .kpi-sub { font-size: 0.68rem; gap: 0.6rem; }
+        }
+
         /* === мобильные правки 2026-11-04 (скриншоты mobile_bags) ===
            Блок в КОНЦЕ стилей: базовые правила .reo-* объявлены позже
            первого media-блока и перебивали его — здесь они перекрываются
@@ -585,6 +610,7 @@
             .kpi-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
             .kpi-sub { font-size: 0.68rem; }
             .reo-kpi-grid { grid-template-columns: 1fr; }
+            .reo-kpi-grid .kpi-card { width: 100%; max-width: none; }
             .reo-tree-card { padding: 1rem 0.8rem; }
             .charts-grid > .chart-card { min-width: 0; }
             .chart-card canvas { max-width: 100%; }
@@ -601,13 +627,13 @@
             <div class="logo">
                 <img src="logo.svg" alt="СтройИнжиниринг">
             </div>
+        </div>
+        <div class="header-right">
             <select id="reportSelect" class="report-selector" onchange="changeReport()">
                 <option value="">Выберите отчёт...</option>
                 <option value="osv_6002">Анализ ОСВ 60.02</option>
                 <option value="reo" style="display:none;">Демо-аналитика</option>
             </select>
-        </div>
-        <div class="header-right">
             <div class="admin-sandbox" id="adminSandbox" style="display:none;">
                 <span class="sandbox-label">SANDBOX:</span>
                 <select id="roleSelect" class="role-selector" onchange="changeRole()">
