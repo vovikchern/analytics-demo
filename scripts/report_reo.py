@@ -39,7 +39,7 @@ TABLE_TITLES = {
     "ng": "[DEV]_reo_ng_reference",
 }
 
-REO_ROLES = ("admin", "accounting", "management")
+REO_ROLES = ("admin", "accounting", "management", "top_manager")
 
 # Площадка (верхний уровень drill-down). Явный маппинг по договору —
 # в духе правила «явные маппинги»; когда в reo_ng_reference появится
